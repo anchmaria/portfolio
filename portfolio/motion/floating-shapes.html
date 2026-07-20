@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Floating Shapes — Brand Animation</title>
+  <style>
+    /* ── Brand palette (RGB for rgba control) ───────────────── */
+    :root {
+      --c-gold:   201, 162,  85;
+      --c-violet: 114,  85, 176;
+      --c-indigo:  30,  62, 144;
+      --bg: #07050F;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Every shape shares these ───────────────────────────── */
+    .shape {
+      position: absolute;
+      will-change: transform, opacity;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CIRCLES  — soft radial fills + gaussian blur → luminous glow
+    ═══════════════════════════════════════════════════════════ */
+
+    /* C1 — Gold, upper-left */
+    .c1 {
+      width: 228px; height: 228px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 38%,
+        rgba(var(--c-gold), 0.96)  0%,
+        rgba(var(--c-gold), 0.58) 42%,
+        rgba(var(--c-gold), 0.14) 76%,
+        transparent 100%
+      );
+      filter: blur(18px);
+      top: 7%; left: 6%;
+      animation: fC1 3s ease-in-out infinite;
+    }
+
+    /* C2 — Violet, center-right */
+    .c2 {
+      width: 308px; height: 308px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 54% 44%,
+        rgba(var(--c-violet), 0.93)  0%,
+        rgba(var(--c-violet), 0.52) 46%,
+        rgba(var(--c-violet), 0.11) 78%,
+        transparent 100%
+      );
+      filter: blur(22px);
+      top: 12%; right: 7%;
+      animation: fC2 3s ease-in-out infinite;
+      animation-delay: -1.15s;
+    }
+
+    /* C3 — Indigo, bottom-left */
+    .c3 {
+      width: 264px; height: 264px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 46% 56%,
+        rgba(var(--c-indigo), 0.91)  0%,
+        rgba(var(--c-indigo), 0.50) 50%,
+        rgba(var(--c-indigo), 0.10) 80%,
+        transparent 100%
+      );
+      filter: blur(20px);
+      bottom: 9%; left: 11%;
+      animation: fC3 3s ease-in-out infinite;
+      animation-delay: -0.65s;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ROUNDED RECTANGLES — sharp edges, diagonal gradient fills
+    ═══════════════════════════════════════════════════════════ */
+
+    /* R1 — Gold→Violet, horizontal bar, upper area */
+    .r1 {
+      width: 190px; height: 66px;
+      border-radius: 20px;
+      background: linear-gradient(122deg,
+        rgba(var(--c-gold),   0.83),
+        rgba(var(--c-violet), 0.67)
+      );
+      top: 13%; right: 19%;
+      animation: fR1 3s ease-in-out infinite;
+      animation-delay: -1.85s;
+    }
+
+    /* R2 — Violet→Indigo, tall card, lower-right */
+    .r2 {
+      width: 100px; height: 160px;
+      border-radius: 22px;
+      background: linear-gradient(158deg,
+        rgba(var(--c-violet), 0.80),
+        rgba(var(--c-indigo), 0.65)
+      );
+      bottom: 13%; right: 13%;
+      animation: fR2 3s ease-in-out infinite;
+      animation-delay: -0.38s;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LINE — 1.5 px, gold→indigo gradient, rotated, centred
+    ═══════════════════════════════════════════════════════════ */
+    .line {
+      width: 365px; height: 1.5px;
+      border-radius: 2px;
+      background: linear-gradient(90deg,
+        transparent                     0%,
+        rgba(var(--c-gold),   0.90)    26%,
+        rgba(var(--c-indigo), 0.75)    74%,
+        transparent                    100%
+      );
+      top:  calc(50% - 1px);
+      left: calc(50% - 182px);
+      transform-origin: center center;
+      animation: fL 3s ease-in-out infinite;
+      animation-delay: -2.25s;
+    }
+
+    /* ─── Vignette keeps edges dark → shapes pop in centre ──── */
+    .vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(
+        ellipse 80% 78% at 50% 50%,
+        transparent 40%,
+        rgba(7, 5, 15, 0.62) 100%
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* ─── Grain overlay ─────────────────────────────────────── */
+    .grain {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 101;
+    }
+    .grain svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    /* ═══════════════════════════════════════════════════════════
+       KEYFRAMES
+       Law: 0% === 100% + ease-in-out → velocity = 0 at seam
+       → zero perceptible reset regardless of cycle count.
+       Each shape is pre-advanced via animation-delay to ensure
+       the stage is always occupied at different phases.
+    ═══════════════════════════════════════════════════════════ */
+
+    @keyframes fC1 {
+      0%,100% { transform: translate(  0px,   0px) rotate(  0.0deg); opacity: 0.78; }
+      32%     { transform: translate( 34px, -22px) rotate(  4.0deg); opacity: 0.90; }
+      68%     { transform: translate( 14px,  18px) rotate( -2.0deg); opacity: 0.72; }
+    }
+
+    @keyframes fC2 {
+      0%,100% { transform: translate(  0px,   0px) rotate(  0.0deg); opacity: 0.82; }
+      38%     { transform: translate(-28px,  24px) rotate( -3.5deg); opacity: 0.70; }
+      72%     { transform: translate( 16px, -19px) rotate(  2.0deg); opacity: 0.90; }
+    }
+
+    @keyframes fC3 {
+      0%,100% { transform: translate(  0px,   0px) rotate(  0.0deg); opacity: 0.75; }
+      30%     { transform: translate( 26px, -28px) rotate(  3.0deg); opacity: 0.88; }
+      66%     { transform: translate(-16px,  13px) rotate( -1.5deg); opacity: 0.70; }
+    }
+
+    @keyframes fR1 {
+      0%,100% { transform: translate(  0px,   0px) rotate(  0.0deg); opacity: 0.76; }
+      44%     { transform: translate(-22px,  19px) rotate( -8.0deg); opacity: 0.90; }
+      80%     { transform: translate( 12px, -11px) rotate(  4.5deg); opacity: 0.70; }
+    }
+
+    @keyframes fR2 {
+      0%,100% { transform: translate(  0px,   0px) rotate(  0.0deg); opacity: 0.73; }
+      40%     { transform: translate( 24px, -20px) rotate(  6.5deg); opacity: 0.88; }
+      76%     { transform: translate(-14px,   9px) rotate( -4.0deg); opacity: 0.70; }
+    }
+
+    /* Line: rotate + translate together via compound transform */
+    @keyframes fL {
+      0%,100% { transform: rotate(-15deg) translate(  0px,   0px); opacity: 0.72; }
+      50%     { transform: rotate( -8deg) translate( 40px,  26px); opacity: 0.88; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scene">
+  <!-- ── Circles ── -->
+  <div class="shape c1"></div>
+  <div class="shape c2"></div>
+  <div class="shape c3"></div>
+
+  <!-- ── Rounded rects ── -->
+  <div class="shape r1"></div>
+  <div class="shape r2"></div>
+
+  <!-- ── Line ── -->
+  <div class="shape line"></div>
+
+  <!-- ── Vignette ── -->
+  <div class="vignette"></div>
+
+  <!-- ── Grain ── -->
+  <div class="grain" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <filter id="gf" x="0%" y="0%" width="100%" height="100%"
+              color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.78"
+                      numOctaves="4" seed="12" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+        <feBlend in="SourceGraphic" mode="soft-light"/>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#gf)" opacity="0.048"/>
+    </svg>
+  </div>
+</div>
+
+</body>
+</html>

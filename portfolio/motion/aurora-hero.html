@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurora Hero — Brand Background</title>
+  <style>
+    /* ─────────────────────────────────────────────────────────────
+       BRAND PALETTE
+       Золото  ·  #C9A255  — Время
+       Аметист ·  #7255B0  — Пространство
+       Индиго  ·  #1E3E90  — Движение
+    ───────────────────────────────────────────────────────────── */
+    :root {
+      --bg:      #07050F;
+      --gold:    196, 153, 72;   /* RGB for rgba() */
+      --violet:  114,  85, 176;
+      --indigo:   30,  62, 144;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    /* ─── Hero container ──────────────────────────────────────── */
+    .hero {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      isolation: isolate; /* contain blend modes */
+    }
+
+    /* ─── Every light blob ────────────────────────────────────── */
+    .light {
+      position: absolute;
+      border-radius: 50%;
+      mix-blend-mode: screen; /* additive colour mixing on dark bg */
+      will-change: transform, opacity;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       GOLD  — "Время"  (large, slow, top-left anchor)
+    ══════════════════════════════════════════════════════════ */
+    .l-gold-main {
+      width: 85vw;  height: 65vw;
+      max-width: 1100px; max-height: 850px;
+      background: radial-gradient(ellipse at 50% 45%,
+        rgba(var(--gold), 0.60)  0%,
+        rgba(var(--gold), 0.22) 38%,
+        transparent             70%
+      );
+      top: -20%; left: -18%;
+      filter: blur(72px);
+      animation: driftA 20s ease-in-out infinite;
+      animation-delay: -5s;
+    }
+
+    /* smaller gold satellite — upper centre */
+    .l-gold-sat {
+      width: 42vw;  height: 40vw;
+      max-width: 520px; max-height: 500px;
+      background: radial-gradient(ellipse at 50% 50%,
+        rgba(var(--gold), 0.40)  0%,
+        rgba(var(--gold), 0.10) 50%,
+        transparent             75%
+      );
+      top: 5%; left: 35%;
+      filter: blur(52px);
+      animation: driftD 17s ease-in-out infinite;
+      animation-delay: -9s;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       VIOLET — "Пространство"  (large, mid-right)
+    ══════════════════════════════════════════════════════════ */
+    .l-violet-main {
+      width: 80vw;  height: 80vw;
+      max-width: 1000px; max-height: 1000px;
+      background: radial-gradient(ellipse at 50% 50%,
+        rgba(var(--violet), 0.68)  0%,
+        rgba(var(--violet), 0.26) 40%,
+        transparent               70%
+      );
+      top: 5%; right: -22%;
+      filter: blur(80px);
+      animation: driftB 25s ease-in-out infinite;
+      animation-delay: -12s;
+    }
+
+    /* small violet accent — lower left  */
+    .l-violet-sat {
+      width: 38vw;  height: 45vw;
+      max-width: 480px; max-height: 560px;
+      background: radial-gradient(ellipse at 50% 50%,
+        rgba(var(--violet), 0.38)  0%,
+        rgba(var(--violet), 0.10) 55%,
+        transparent               75%
+      );
+      bottom: 5%; left: 8%;
+      filter: blur(58px);
+      animation: driftE 19s ease-in-out infinite;
+      animation-delay: -3s;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       INDIGO — "Движение"  (wide, bottom sweep)
+    ══════════════════════════════════════════════════════════ */
+    .l-indigo-main {
+      width: 100vw; height: 55vw;
+      max-width: 1300px; max-height: 720px;
+      background: radial-gradient(ellipse at 50% 55%,
+        rgba(var(--indigo), 0.65)  0%,
+        rgba(var(--indigo), 0.22) 42%,
+        transparent               68%
+      );
+      bottom: -28%; left: -5%;
+      filter: blur(90px);
+      animation: driftC 22s ease-in-out infinite;
+      animation-delay: -7s;
+    }
+
+    /* small indigo centre spark */
+    .l-indigo-sat {
+      width: 30vw;  height: 30vw;
+      max-width: 380px; max-height: 380px;
+      background: radial-gradient(ellipse at 50% 50%,
+        rgba(var(--indigo), 0.50)  0%,
+        rgba(var(--indigo), 0.12) 55%,
+        transparent               75%
+      );
+      top: 40%; left: 45%;
+      filter: blur(45px);
+      animation: driftF 14s ease-in-out infinite;
+      animation-delay: -6s;
+    }
+
+    /* ─── Keyframes ─────────────────────────────────────────────
+       Rule: 0% === 100% values  +  ease-in-out  =  seamless loop.
+       Each blob drifts on a different lissajous-like path.
+    ────────────────────────────────────────────────────────── */
+
+    @keyframes driftA {
+      0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.88; }
+      20%  { transform: translate( 70px,  40px) scale(1.14); opacity: 1.00; }
+      45%  { transform: translate( 35px,  90px) scale(0.94); opacity: 0.78; }
+      70%  { transform: translate(-45px,  35px) scale(1.09); opacity: 0.93; }
+      100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.88; }
+    }
+
+    @keyframes driftB {
+      0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.82; }
+      22%  { transform: translate(-60px,  25px) scale(1.12); opacity: 0.96; }
+      50%  { transform: translate(-25px, -55px) scale(0.91); opacity: 0.72; }
+      75%  { transform: translate( 45px, -22px) scale(1.07); opacity: 0.87; }
+      100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.82; }
+    }
+
+    @keyframes driftC {
+      0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.74; }
+      28%  { transform: translate( 50px, -35px) scale(1.10); opacity: 0.88; }
+      55%  { transform: translate(-35px, -22px) scale(0.93); opacity: 0.66; }
+      80%  { transform: translate( 22px,  38px) scale(1.06); opacity: 0.78; }
+      100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.74; }
+    }
+
+    @keyframes driftD {
+      0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.65; }
+      30%  { transform: translate(-40px, -50px) scale(1.22); opacity: 0.85; }
+      58%  { transform: translate( 55px,  18px) scale(0.83); opacity: 0.52; }
+      80%  { transform: translate( 18px, -28px) scale(1.12); opacity: 0.72; }
+      100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.65; }
+    }
+
+    @keyframes driftE {
+      0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.60; }
+      25%  { transform: translate( 38px, -45px) scale(1.15); opacity: 0.78; }
+      52%  { transform: translate(-28px,  30px) scale(0.87); opacity: 0.55; }
+      78%  { transform: translate( 15px,  50px) scale(1.08); opacity: 0.68; }
+      100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.60; }
+    }
+
+    @keyframes driftF {
+      0%   { transform: translate(  0px,   0px) scale(1.00); opacity: 0.55; }
+      35%  { transform: translate(-50px,  35px) scale(1.28); opacity: 0.75; }
+      65%  { transform: translate( 40px, -40px) scale(0.78); opacity: 0.45; }
+      85%  { transform: translate(-20px, -15px) scale(1.14); opacity: 0.62; }
+      100% { transform: translate(  0px,   0px) scale(1.00); opacity: 0.55; }
+    }
+
+    /* ─── Vignette: darkens the perimeter, focuses the glow ──── */
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 75% 70% at 50% 50%,
+        transparent 35%,
+        rgba(7, 5, 15, 0.55) 70%,
+        rgba(7, 5, 15, 0.88) 100%
+      );
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* ─── Subtle grain texture (SVG turbulence) ──────────────── */
+    .grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 1;
+    }
+
+    .grain svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero" aria-hidden="true">
+
+  <!-- Gold layer: Время -->
+  <div class="light l-gold-main"></div>
+  <div class="light l-gold-sat"></div>
+
+  <!-- Violet layer: Пространство -->
+  <div class="light l-violet-main"></div>
+  <div class="light l-violet-sat"></div>
+
+  <!-- Indigo layer: Движение -->
+  <div class="light l-indigo-main"></div>
+  <div class="light l-indigo-sat"></div>
+
+  <!-- Perimeter vignette -->
+  <div class="vignette"></div>
+
+  <!-- Film-grain texture -->
+  <div class="grain">
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <filter id="grain-filter" x="0%" y="0%" width="100%" height="100%"
+              color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise"
+                      baseFrequency="0.72"
+                      numOctaves="4"
+                      seed="8"
+                      stitchTiles="stitch"
+                      result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+        <feBlend in="SourceGraphic" in2="gray" mode="soft-light"/>
+      </filter>
+      <rect width="100%" height="100%"
+            filter="url(#grain-filter)"
+            opacity="0.055"/>
+    </svg>
+  </div>
+
+</section>
+
+</body>
+</html>

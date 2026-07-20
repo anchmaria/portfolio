@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Деви-Календарь · Ади 2026</title>
+
+  <script>
+    /* Set theme before CSS renders — prevents flash */
+    (function () {
+      var s = localStorage.getItem('deviTheme');
+      if (!s) {
+        var m = new Date().getHours() * 60 + new Date().getMinutes();
+        s = (m >= 312 && m < 1298) ? 'light' : 'dark'; /* 05:12 = 312, 21:38 = 1298 */
+      }
+      document.documentElement.setAttribute('data-theme', s);
+    })();
+  </script>
+
+  <style>
+    /* ══ LIGHT THEME — soft pink-lilac ══════════════════════════════ */
+    :root {
+      --bg:          #F7EEF8;
+      --card-bg:     #FFFFFF;
+      --card-border: #D8C0E8;
+      --text:        #28083A;
+      --muted:       #8A6898;
+      --accent:      #8A1F6A;
+      --gold:        #7A5808;
+      --avoid:       #A02020;
+      --avoid-bdr:   #DDAAAA;
+      --nav-bg:      #EDE0F5;
+      --strip-bg:    #F2E8F8;
+      --well-bg:     #FDF5FF;
+      --footer-col:  #C0A0CC;
+      --h1:          #5A1040;
+      --h2:          #38081E;
+      --today-bg:    #5A1040;
+      --hi:          #F0D080;   /* header highlight: warm gold on rose-maroon */
+      --hdr-text:    #F0D0E8;   /* app name in header */
+    }
+
+    /* ══ DARK THEME — lavender & violet ════════════════════════════ */
+    [data-theme="dark"] {
+      --bg:          #0D0718;
+      --card-bg:     #1B0F2E;
+      --card-border: #483078;
+      --text:        #EAE0F8;
+      --muted:       #9080B8;
+      --accent:      #BF7EF0;
+      --gold:        #C8A8EA;
+      --avoid:       #D05070;
+      --avoid-bdr:   #581830;
+      --nav-bg:      #150B24;
+      --strip-bg:    #120920;
+      --well-bg:     #0C0618;
+      --footer-col:  #382660;
+      --h1:          #3C0F78;
+      --h2:          #240848;
+      --today-bg:    #3C0F78;
+      --hi:          #D8C0F8;   /* header highlight: cool lavender on violet */
+      --hdr-text:    #E0D0F8;   /* app name in header */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      transition: background .25s, color .25s;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(160deg, var(--h1) 0%, var(--h2) 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 1rem 1.2rem .85rem;
+    }
+
+    .hdr-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .6rem;
+    }
+
+    .app-name {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--hdr-text);
+      letter-spacing: .03em;
+    }
+
+    .hdr-controls { display: flex; align-items: center; gap: .4rem; }
+
+    .lang-btn, .theme-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,.28);
+      color: rgba(255,255,255,.6);
+      border-radius: 5px;
+      padding: .2rem .55rem;
+      font-size: .75rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color .18s, color .18s;
+    }
+
+    .lang-btn.active { border-color: var(--hi); color: var(--hi); }
+    .lang-btn:hover, .theme-btn:hover { border-color: rgba(255,255,255,.65); color: #fff; }
+
+    .sep { color: rgba(255,255,255,.22); font-size: .75rem; }
+
+    .hdr-date { display: flex; justify-content: space-between; align-items: flex-end; }
+
+    .date-main { font-size: 1.4rem; font-weight: 700; color: #FFF5F0; }
+    .date-sub  { font-size: .82rem; color: var(--hi); margin-top: .18rem; }
+
+    .location { text-align: right; font-size: .73rem; color: rgba(255,255,255,.5); line-height: 1.45; }
+
+    /* ── INFO BLOCK ──────────────────────────────────────────────── */
+    details.info {
+      background: var(--well-bg);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .info summary {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .62rem 1.2rem;
+      cursor: pointer;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--accent);
+      list-style: none;
+      user-select: none;
+    }
+
+    .info summary::-webkit-details-marker { display: none; }
+
+    .arrow {
+      font-size: .62rem;
+      color: var(--muted);
+      display: inline-block;
+      transition: transform .22s;
+    }
+
+    details.info[open] .arrow { transform: rotate(90deg); }
+
+    .info-body {
+      padding: 0 1.2rem .8rem;
+      font-size: .81rem;
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    /* ── MONTH STRIP ─────────────────────────────────────────────── */
+    .strip-wrap {
+      background: var(--strip-bg);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .month-strip {
+      display: flex;
+      gap: .15rem;
+      overflow-x: auto;
+      padding: .48rem .7rem;
+      scrollbar-width: none;
+    }
+
+    .month-strip::-webkit-scrollbar { display: none; }
+
+    .sd {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 2rem;
+      padding: .28rem .18rem;
+      border-radius: 7px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .sd.today { background: var(--today-bg); outline: 1px solid var(--gold); }
+
+    .sd-n { font-size: .82rem; font-weight: 600; color: var(--muted); }
+    .sd.today .sd-n { color: var(--hi); }
+
+    .sd-m { font-size: .57rem; color: var(--card-border); margin-top: .04rem; }
+    .sd.today .sd-m { color: var(--muted); }
+
+    .sd-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); margin-top: .18rem; visibility: hidden; }
+    .sd.has-event .sd-dot { visibility: visible; }
+
+    /* ── NAV ─────────────────────────────────────────────────────── */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .52rem .95rem;
+      background: var(--nav-bg);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .nav-btn {
+      background: none;
+      border: 1px solid var(--card-border);
+      color: var(--gold);
+      border-radius: 8px;
+      padding: .36rem .9rem;
+      font-size: .83rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color .18s;
+    }
+
+    .nav-btn:hover { border-color: var(--gold); }
+    .nav-lbl { font-size: .78rem; color: var(--muted); }
+
+    /* ── CARDS ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      margin: .68rem .82rem;
+      transition: background .25s;
+    }
+
+    .clbl {
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: .65rem;
+    }
+
+    /* ── DEITY ───────────────────────────────────────────────────── */
+    .deity-name { font-size: 1.52rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+    .deity-trad { font-size: .77rem; color: var(--muted); margin-top: .18rem; margin-bottom: .95rem; }
+
+    .mantra-block {
+      background: var(--well-bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: .82rem .95rem;
+      margin-bottom: .95rem;
+      position: relative;
+    }
+
+    .mlbl { font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: .35rem; }
+
+    .mantra-txt {
+      font-size: 1.06rem;
+      color: var(--text);
+      font-style: italic;
+      line-height: 1.5;
+      padding-right: 5.5rem;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: .62rem;
+      right: .62rem;
+      background: none;
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: .2rem .52rem;
+      font-size: .67rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: color .18s, border-color .18s;
+    }
+
+    .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    .slbl { font-size: .7rem; color: var(--muted); margin-bottom: .42rem; }
+    .slinks { display: flex; flex-wrap: wrap; gap: .42rem; margin-bottom: .6rem; }
+
+    .slink {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: .8rem;
+      border-bottom: 1px dashed var(--card-border);
+      padding-bottom: .07rem;
+      transition: color .18s;
+    }
+
+    .slink:hover { color: var(--gold); }
+
+    .slink-pending {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .slink-pending em {
+      font-style: italic;
+      font-size: .72rem;
+      color: var(--card-border);
+      margin-left: .2rem;
+    }
+
+    .offerings { font-size: .75rem; color: var(--muted); border-top: 1px solid var(--card-border); padding-top: .58rem; }
+
+    /* ── EVENTS ──────────────────────────────────────────────────── */
+    .no-events { font-size: .82rem; color: var(--muted); font-style: italic; }
+
+    /* ── TIMES ───────────────────────────────────────────────────── */
+    .tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: .52rem; }
+
+    .ti {
+      background: var(--well-bg);
+      border-radius: 9px;
+      padding: .62rem .72rem;
+      border: 1px solid transparent;
+    }
+
+    .ti.avoid { border-color: var(--avoid-bdr); }
+
+    .ti-lbl { font-size: .61rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: .26rem; }
+    .ti.avoid .ti-lbl { color: var(--avoid); }
+
+    .ti-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .ti.avoid .ti-val { color: var(--avoid); }
+
+    .ti-desc { font-size: .63rem; color: var(--muted); margin-top: .16rem; line-height: 1.3; }
+
+    .ti-meaning { font-size: .64rem; color: var(--accent); margin-top: .26rem; line-height: 1.35; font-style: italic; }
+    .ti.avoid .ti-meaning { color: var(--avoid); opacity: .85; }
+
+    .ti-check {
+      display: block;
+      margin-top: .26rem;
+      font-size: .6rem;
+      color: var(--card-border);
+      text-decoration: none;
+      transition: color .18s;
+    }
+
+    .ti-check:hover { color: var(--accent); }
+
+    .times-note {
+      margin-top: .65rem;
+      font-size: .62rem;
+      color: var(--muted);
+      background: var(--well-bg);
+      border-radius: 6px;
+      padding: .45rem .58rem;
+      line-height: 1.45;
+      opacity: .75;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────────────── */
+    footer { text-align: center; font-size: .59rem; color: var(--footer-col); padding: 1.2rem 1rem 2rem; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="hdr-top">
+      <span class="app-name" data-i18n="appTitle">Деви-Календарь · Ади 2026</span>
+      <div class="hdr-controls">
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Тёмная</button>
+        <span class="sep">|</span>
+        <button class="lang-btn active" data-lang="ru" onclick="setLang('ru')">RU</button>
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+    <div class="hdr-date">
+      <div>
+        <div class="date-main" data-i18n="dateMain">20 июля 2026</div>
+        <div class="date-sub"  data-i18n="dateSub">Понедельник · Ади, день 4</div>
+      </div>
+      <div class="location">Dublin, IE<br><span style="font-size:.6rem">UTC+1</span></div>
+    </div>
+  </header>
+
+  <!-- INFO BLOCK (collapsible) -->
+  <details class="info">
+    <summary>
+      <span class="arrow">&#9654;</span>
+      <span data-i18n="infoTitle">Что такое месяц Ади</span>
+    </summary>
+    <p class="info-body" data-i18n="infoBody">Ади (Aadi Masam) — 32-дневный период с 17 июля по 17 августа, посвящённый поклонению Ади Шакти, Изначальной Матери. Это особое время для духовной практики, молитвы и внутреннего обновления. Наиболее благоприятные дни — пятницы (Ади Велли) и вторники (Ади Чеввай).</p>
+  </details>
+
+  <!-- MONTH STRIP -->
+  <div class="strip-wrap">
+    <div class="month-strip" id="monthStrip"></div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn" data-i18n="navPrev">← Вчера</button>
+    <span class="nav-lbl" data-i18n="navToday">Сегодня</span>
+    <button class="nav-btn" data-i18n="navNext">Завтра →</button>
+  </div>
+
+  <!-- DEITY CARD -->
+  <div class="card">
+    <div class="clbl" data-i18n="lblDeity">Богиня дня</div>
+    <div class="deity-name">Парвати · Гаури</div>
+    <div class="deity-trad" data-i18n="deityTrad">Понедельник — день чистоты, семьи и преданности</div>
+
+    <div class="mantra-block">
+      <div class="mlbl" data-i18n="mantraLbl">Мантра дня</div>
+      <div class="mantra-txt" id="mantraText">Om Parvatyai Namah</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyMantra()" data-i18n="copyBtn">скопировать</button>
+    </div>
+
+    <div class="slbl" data-i18n="stotrasLbl">Штотры для практики:</div>
+    <div class="slinks">
+      <span class="slink-pending">Gauri Ashtakam<em>текст добавим позже</em></span>
+      <a class="slink" href="https://sanskritdocuments.org/doc_devii/annapurna.html" target="_blank" rel="noopener">Annapurna Stotram ↗</a>
+    </div>
+    <div class="offerings" data-i18n="offerings">Подношения: белые цветы, молоко, пайасам</div>
+  </div>
+
+  <!-- EVENTS CARD -->
+  <div class="card">
+    <div class="clbl" data-i18n="lblEvents">События дня</div>
+    <div class="no-events" data-i18n="eventsEmpty">Особых событий нет — день обычной практики</div>
+  </div>
+
+  <!-- TIMES CARD -->
+  <div class="card">
+    <div class="clbl" data-i18n="lblTimes">Окна времени · Дублин</div>
+    <div class="tgrid">
+
+      <div class="ti">
+        <div class="ti-lbl"  data-i18n="lblSunrise">Восход</div>
+        <div class="ti-val">05:12</div>
+        <div class="ti-desc" data-i18n="descSunrise">начало дня</div>
+        <a class="ti-check" data-i18n="checkSrc"
+           href="https://www.drikpanchang.com/sunrise/sunrise-sunset-time.html?date=2026-07-20"
+           target="_blank" rel="noopener">проверить в источнике ↗</a>
+      </div>
+
+      <div class="ti">
+        <div class="ti-lbl"  data-i18n="lblSunset">Закат</div>
+        <div class="ti-val">21:38</div>
+        <div class="ti-desc" data-i18n="descSunset">конец дня</div>
+        <a class="ti-check" data-i18n="checkSrc"
+           href="https://www.drikpanchang.com/sunrise/sunrise-sunset-time.html?date=2026-07-20"
+           target="_blank" rel="noopener">проверить в источнике ↗</a>
+      </div>
+
+      <div class="ti">
+        <div class="ti-lbl"    data-i18n="lblBrahma">Брахма-мухурта</div>
+        <div class="ti-val">03:36–04:24</div>
+        <div class="ti-desc"   data-i18n="descBrahma">восход − 96 мин, 48 мин</div>
+        <div class="ti-meaning" data-i18n="meaningBrahma">лучшее время для медитации и джапы</div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-lbl"    data-i18n="lblAbhijit">Абхиджит-мухурта</div>
+        <div class="ti-val">13:12–13:36</div>
+        <div class="ti-desc"   data-i18n="descAbhijit">солнечный полдень ± 24 мин</div>
+        <div class="ti-meaning" data-i18n="meaningAbhijit">благоприятно для начинаний</div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-lbl"    data-i18n="lblPradosha">Прадоша-кала</div>
+        <div class="ti-val">21:38–23:08</div>
+        <div class="ti-desc"   data-i18n="descPradosha">закат + 90 мин</div>
+        <div class="ti-meaning" data-i18n="meaningPradosha">время для вечерней пуджи (особенно Шиве)</div>
+      </div>
+
+      <div class="ti avoid">
+        <div class="ti-lbl"    data-i18n="lblRahu">Раху-калам — избегать</div>
+        <div class="ti-val">07:30–09:07</div>
+        <div class="ti-desc"   data-i18n="descRahu">пн: 2-й отрезок светового дня</div>
+        <div class="ti-meaning" data-i18n="meaningRahu">не начинать важных дел, для практики не рекомендуется</div>
+      </div>
+
+    </div>
+    <div class="times-note" data-i18n="timesNote">Фаза 0: времена рассчитаны вручную для Дублина (07.2026) как пример. Точный автоматический расчёт по геолокации — в Фазе 2.</div>
+  </div>
+
+  <footer data-i18n="footer">Деви-Календарь v1 · Фаза 0 · Статичные данные одного дня</footer>
+
+  <script>
+    /* ── TRANSLATIONS ─────────────────────────────────────────────── */
+    const T = {
+      ru: {
+        appTitle:'Деви-Календарь · Ади 2026', dateMain:'20 июля 2026', dateSub:'Понедельник · Ади, день 4',
+        infoTitle:'Что такое месяц Ади',
+        infoBody:'Ади (Aadi Masam) — 32-дневный период с 17 июля по 17 августа, посвящённый поклонению Ади Шакти, Изначальной Матери. Это особое время для духовной практики, молитвы и внутреннего обновления. Наиболее благоприятные дни — пятницы (Ади Велли) и вторники (Ади Чеввай).',
+        navPrev:'← Вчера', navToday:'Сегодня', navNext:'Завтра →',
+        lblDeity:'Богиня дня', deityTrad:'Понедельник — день чистоты, семьи и преданности',
+        mantraLbl:'Мантра дня', copyBtn:'скопировать',
+        stotrasLbl:'Штотры для практики:', offerings:'Подношения: белые цветы, молоко, пайасам',
+        lblEvents:'События дня', eventsEmpty:'Особых событий нет — день обычной практики',
+        lblTimes:'Окна времени · Дублин',
+        lblSunrise:'Восход',         descSunrise:'начало дня',               checkSrc:'проверить в источнике ↗',
+        lblSunset:'Закат',           descSunset:'конец дня',
+        lblBrahma:'Брахма-мухурта',  descBrahma:'восход − 96 мин, 48 мин',  meaningBrahma:'лучшее время для медитации и джапы',
+        lblAbhijit:'Абхиджит-мухурта',descAbhijit:'солнечный полдень ± 24 мин',meaningAbhijit:'благоприятно для начинаний',
+        lblPradosha:'Прадоша-кала',  descPradosha:'закат + 90 мин',          meaningPradosha:'время для вечерней пуджи (особенно Шиве)',
+        lblRahu:'Раху-калам — избегать',descRahu:'пн: 2-й отрезок светового дня',meaningRahu:'не начинать важных дел, для практики не рекомендуется',
+        timesNote:'Фаза 0: времена рассчитаны вручную для Дублина (07.2026) как пример. Точный автоматический расчёт по геолокации — в Фазе 2.',
+        footer:'Деви-Календарь v1 · Фаза 0 · Статичные данные одного дня',
+        themeToDark:'Тёмная', themeToLight:'Светлая',
+      },
+      en: {
+        appTitle:'Devi Calendar · Aadi 2026', dateMain:'July 20, 2026', dateSub:'Monday · Aadi, Day 4',
+        infoTitle:'About the Month of Aadi',
+        infoBody:'Aadi (Aadi Masam) is a 32-day period from July 17 to August 17, dedicated to the worship of Adi Shakti, the Primordial Mother. It is a sacred time for spiritual practice, prayer, and inner renewal. The most auspicious days are Fridays (Aadi Velli) and Tuesdays (Aadi Chevvai).',
+        navPrev:'← Yesterday', navToday:'Today', navNext:'Tomorrow →',
+        lblDeity:'Deity of the Day', deityTrad:'Monday — day of purity, family, and devotion',
+        mantraLbl:"Today's Mantra", copyBtn:'copy',
+        stotrasLbl:'Stotras for practice:', offerings:'Offerings: white flowers, milk, payasam',
+        lblEvents:'Events of the Day', eventsEmpty:'No special events — regular practice day',
+        lblTimes:'Time Windows · Dublin',
+        lblSunrise:'Sunrise',       descSunrise:'start of day',             checkSrc:'check in source ↗',
+        lblSunset:'Sunset',         descSunset:'end of day',
+        lblBrahma:'Brahma Muhurta', descBrahma:'sunrise − 96 min, 48 min', meaningBrahma:'best time for meditation and japa',
+        lblAbhijit:'Abhijit Muhurta',descAbhijit:'solar noon ± 24 min',    meaningAbhijit:'auspicious for new beginnings',
+        lblPradosha:'Pradosha Kala',descPradosha:'sunset + 90 min',         meaningPradosha:'time for evening puja (especially for Shiva)',
+        lblRahu:'Rahu Kalam — avoid',descRahu:'Mon: 2nd segment of daylight',meaningRahu:'avoid starting important matters; not recommended for practice',
+        timesNote:'Phase 0: times are manually estimated for Dublin (July 2026). Accurate automatic calculation based on your location is coming in Phase 2.',
+        footer:'Devi Calendar v1 · Phase 0 · Static data for one day',
+        themeToDark:'Dark mode', themeToLight:'Light mode',
+      }
+    };
+
+    let lang = 'ru';
+
+    function setLang(l) {
+      lang = l;
+      const t = T[l];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.dataset.i18n;
+        if (k in t) el.textContent = t[k];
+      });
+      document.querySelectorAll('.lang-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.lang === l));
+      document.documentElement.lang = l;
+      syncThemeBtn();
+    }
+
+    /* ── THEME ───────────────────────────────────────────────────── */
+    function syncThemeBtn() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('themeBtn').textContent =
+        dark ? T[lang].themeToLight : T[lang].themeToDark;
+    }
+
+    function toggleTheme() {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('deviTheme', next);
+      syncThemeBtn();
+    }
+
+    syncThemeBtn();
+
+    /* ── MONTH STRIP ─────────────────────────────────────────────── */
+    (function () {
+      const start  = new Date('2026-07-17T00:00:00');
+      const today  = '2026-07-20';
+      const events = new Set(['2026-07-17','2026-07-19','2026-07-21','2026-07-24','2026-07-25',
+        '2026-07-28','2026-07-29','2026-07-31','2026-08-03','2026-08-04','2026-08-07',
+        '2026-08-09','2026-08-10','2026-08-11','2026-08-12','2026-08-14','2026-08-16','2026-08-17']);
+
+      const strip = document.getElementById('monthStrip');
+      let todayEl = null;
+
+      for (let d = 0; d < 32; d++) {
+        const dt  = new Date(start);
+        dt.setDate(dt.getDate() + d);
+        const iso = dt.toISOString().slice(0, 10);
+        const num = String(dt.getDate()).padStart(2, '0');
+        const mon = dt.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
+        const el  = document.createElement('div');
+        el.className = 'sd' + (iso === today ? ' today' : '') + (events.has(iso) ? ' has-event' : '');
+        el.innerHTML = `<span class="sd-n">${num}</span><span class="sd-m">${mon}</span><div class="sd-dot"></div>`;
+        strip.appendChild(el);
+        if (iso === today) todayEl = el;
+      }
+
+      if (todayEl) requestAnimationFrame(() =>
+        todayEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }));
+    })();
+
+    /* ── COPY MANTRA ─────────────────────────────────────────────── */
+    function copyMantra() {
+      const text = document.getElementById('mantraText').textContent.trim();
+      const btn  = document.getElementById('copyBtn');
+      const done = () => {
+        btn.textContent = lang === 'ru' ? 'скопировано' : 'copied';
+        setTimeout(() => { btn.textContent = T[lang].copyBtn; }, 2200);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(done).catch(fb);
+      } else { fb(); }
+      function fb() {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        try { document.execCommand('copy'); done(); } catch(e) {}
+        document.body.removeChild(ta);
+      }
+    }
+  </script>
+</body>
+</html>

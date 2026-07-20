@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Breathing Mockup — Brand Animation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Cormorant:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Brand palette ──────────────────────────────────────── */
+    :root {
+      --c-gold:    201, 162,  85;
+      --c-violet:  114,  85, 176;
+      --c-indigo:   30,  62, 144;
+
+      --gold:   #C9A255;
+      --violet: #7255B0;
+      --indigo: #1E3E90;
+      --dark:   #07050F;
+      --dark2:  #0F0B22;   /* screen inner bg */
+
+      /* Page background: very light, muted brand lavender */
+      --page-bg: #F2EFFC;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--page-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Soft radial gradient on page bg for depth */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(
+        ellipse 70% 65% at 50% 50%,
+        rgba(var(--c-violet), 0.06) 0%,
+        transparent 70%
+      );
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DEVICE WRAPPER — animated  (breathing happens here)
+    ══════════════════════════════════════════════════════════ */
+    .device-wrapper {
+      position: relative;
+      /* Phone frame dimensions */
+      width: 304px;
+      /* The animation transform origin stays centre */
+      will-change: transform, box-shadow;
+      animation: breathe 2s ease-in-out infinite;
+      border-radius: 50px;   /* must match phone frame */
+    }
+
+    /* ── 2-second seamless breathing ───────────────────────── */
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(0.975);
+        box-shadow:
+          0  0   0px   0px rgba(var(--c-gold),   0.00),
+          0  0   0px   0px rgba(var(--c-violet),  0.00),
+          0 28px 60px -8px rgba(7, 5, 15,         0.28);
+      }
+      50% {
+        transform: scale(1.000);
+        box-shadow:
+          0  0  28px   8px rgba(var(--c-gold),   0.22),
+          0  0  72px  24px rgba(var(--c-violet),  0.10),
+          0 32px 80px  0px rgba(7, 5, 15,         0.40);
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PHONE FRAME
+    ══════════════════════════════════════════════════════════ */
+    .phone {
+      position: relative;
+      width: 304px;
+      height: 652px;
+      border-radius: 50px;
+      background: #100C20;
+      /* Subtle frame border using gradient */
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    /* Bright side rail highlight (premium device feel) */
+    .phone::before {
+      content: '';
+      position: absolute;
+      top: 12%; left: 0; bottom: 12%;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        transparent, rgba(255,255,255,0.18) 30%,
+        rgba(255,255,255,0.22) 50%,
+        rgba(255,255,255,0.18) 70%, transparent
+      );
+      z-index: 50;
+    }
+
+    /* ── Screen area ─────────────────────────────────────────── */
+    .screen {
+      position: absolute;
+      inset: 2px;
+      border-radius: 48px;
+      background: var(--dark2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Dynamic Island ──────────────────────────────────────── */
+    .dynamic-island {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 118px; height: 32px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 30;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    /* ── Status bar ──────────────────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px 0;
+      height: 54px;
+      flex-shrink: 0;
+    }
+
+    .status-time {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.80);
+      letter-spacing: 0.03em;
+    }
+
+    .status-icons {
+      display: flex; gap: 6px; align-items: center;
+    }
+
+    .si {
+      width: 14px; height: 8px;
+      border: 1.5px solid rgba(255,255,255,0.65);
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .si::after {
+      content: '';
+      position: absolute;
+      inset: 1.5px 2px;
+      background: rgba(255,255,255,0.70);
+      border-radius: 1px;
+      width: 55%;
+    }
+
+    /* signal bars */
+    .signal {
+      display: flex; gap: 1.5px; align-items: flex-end;
+    }
+    .signal span {
+      width: 3px;
+      background: rgba(255,255,255,0.72);
+      border-radius: 1px;
+    }
+    .signal span:nth-child(1) { height: 3px; }
+    .signal span:nth-child(2) { height: 5px; }
+    .signal span:nth-child(3) { height: 7px; }
+    .signal span:nth-child(4) { height: 9px; }
+
+    /* wifi icon using clip-path arc approximation */
+    .wifi {
+      width: 14px; height: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 1px;
+    }
+    .wifi span {
+      border: 1.5px solid rgba(255,255,255,0.70);
+      border-bottom: none; border-radius: 50% 50% 0 0;
+      display: block;
+    }
+    .wifi span:nth-child(1) { width: 14px; height: 7px; }
+    .wifi span:nth-child(2) { width: 8px;  height: 4px; }
+    .wifi span:nth-child(3) { width: 2px; height: 2px; border-radius: 50%; border: none; background: rgba(255,255,255,0.70); }
+
+    /* ── App header ──────────────────────────────────────────── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 22px 6px;
+      flex-shrink: 0;
+    }
+
+    .brand-mark {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--gold), var(--violet));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff;
+    }
+
+    .app-title {
+      font-family: 'Cormorant', serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.90);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .notif-btn {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .notif-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px rgba(var(--c-gold), 0.7);
+    }
+
+    /* ── Main content card (hero) ────────────────────────────── */
+    .main-card {
+      margin: 8px 16px 0;
+      border-radius: 22px;
+      height: 162px;
+      background: linear-gradient(135deg,
+        rgba(var(--c-indigo), 0.90) 0%,
+        rgba(var(--c-violet), 0.75) 55%,
+        rgba(var(--c-gold),   0.45) 100%
+      );
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Abstract decorative circle inside card */
+    .main-card::before {
+      content: '';
+      position: absolute;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle, rgba(var(--c-gold), 0.35) 0%, transparent 70%
+      );
+      top: -20px; right: -20px;
+    }
+
+    .card-tag {
+      position: absolute;
+      top: 16px; left: 18px;
+      font-size: 8.5px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.10);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .card-heading {
+      position: absolute;
+      bottom: 18px; left: 18px; right: 18px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+
+    /* Placeholder text lines */
+    .text-line {
+      height: 7px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.70);
+    }
+
+    .text-line.w-80 { width: 80%; }
+    .text-line.w-55 { width: 55%; opacity: 0.50; }
+
+    /* ── Section label ───────────────────────────────────────── */
+    .section-label {
+      padding: 14px 22px 6px;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.38);
+      flex-shrink: 0;
+    }
+
+    /* ── Two content blocks ──────────────────────────────────── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+
+    .content-card {
+      border-radius: 18px;
+      height: 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Card A — Gold tint */
+    .content-card.a {
+      background: rgba(var(--c-gold), 0.12);
+      border: 1px solid rgba(var(--c-gold), 0.18);
+    }
+
+    .content-card.a::before {
+      content: '';
+      position: absolute; top: -10px; right: -10px;
+      width: 55px; height: 55px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--c-gold), 0.30) 0%, transparent 70%);
+    }
+
+    /* Card B — Violet tint */
+    .content-card.b {
+      background: rgba(var(--c-violet), 0.12);
+      border: 1px solid rgba(var(--c-violet), 0.18);
+    }
+
+    .content-card.b::before {
+      content: '';
+      position: absolute; bottom: -10px; left: -10px;
+      width: 55px; height: 55px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--c-violet), 0.28) 0%, transparent 70%);
+    }
+
+    /* card inner content lines */
+    .card-inner {
+      position: absolute;
+      bottom: 14px; left: 14px; right: 14px;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+
+    .ci-line {
+      height: 5px;
+      border-radius: 3px;
+    }
+
+    .content-card.a .ci-line { background: rgba(var(--c-gold), 0.55); }
+    .content-card.b .ci-line { background: rgba(var(--c-violet), 0.55); }
+    .ci-line.w-70 { width: 70%; }
+    .ci-line.w-50 { width: 50%; opacity: 0.6; }
+
+    .card-icon {
+      position: absolute;
+      top: 14px; left: 14px;
+      width: 24px; height: 24px;
+      border-radius: 8px;
+    }
+
+    .content-card.a .card-icon {
+      background: rgba(var(--c-gold), 0.28);
+    }
+
+    .content-card.b .card-icon {
+      background: rgba(var(--c-violet), 0.28);
+    }
+
+    /* ── CTA button ──────────────────────────────────────────── */
+    .cta-area {
+      padding: 16px 16px 0;
+      flex-shrink: 0;
+    }
+
+    .cta-btn {
+      width: 100%;
+      height: 50px;
+      border-radius: 16px;
+      background: linear-gradient(105deg,
+        rgba(var(--c-gold),   0.95),
+        rgba(var(--c-gold),   0.75) 60%,
+        rgba(var(--c-violet), 0.55)
+      );
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Sheen line on button */
+    .cta-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%; width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+      transform: skewX(-20deg);
+    }
+
+    .cta-text {
+      font-family: 'Cormorant', serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    /* ── Bottom nav bar ──────────────────────────────────────── */
+    .nav-bar {
+      margin-top: auto;
+      padding: 12px 28px 30px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+
+    .nav-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+    }
+
+    .nav-dot.active {
+      width: 20px;
+      border-radius: 3px;
+      background: var(--gold);
+      box-shadow: 0 0 8px rgba(var(--c-gold), 0.50);
+    }
+
+    /* ── Home indicator ──────────────────────────────────────── */
+    .home-bar {
+      position: absolute;
+      bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 100px; height: 4px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.25);
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+
+<!-- The breathing wrapper -->
+<div class="device-wrapper">
+  <div class="phone">
+
+    <!-- Dynamic Island -->
+    <div class="dynamic-island"></div>
+
+    <!-- Screen -->
+    <div class="screen">
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span class="status-time">09:41</span>
+        <div class="status-icons">
+          <div class="signal">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="wifi">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="si"></div>
+        </div>
+      </div>
+
+      <!-- App header -->
+      <div class="app-header">
+        <div class="brand-mark">⊕</div>
+        <span class="app-title">Время</span>
+        <div class="notif-btn">
+          <div class="notif-dot"></div>
+        </div>
+      </div>
+
+      <!-- Hero card (content block 1) -->
+      <div class="main-card">
+        <div class="card-tag">Следующая сессия</div>
+        <div class="card-heading">
+          <div class="text-line w-80"></div>
+          <div class="text-line w-55"></div>
+        </div>
+      </div>
+
+      <!-- Section label -->
+      <div class="section-label">Сегодня</div>
+
+      <!-- Two content blocks -->
+      <div class="content-grid">
+        <div class="content-card a">
+          <div class="card-icon"></div>
+          <div class="card-inner">
+            <div class="ci-line w-70"></div>
+            <div class="ci-line w-50"></div>
+          </div>
+        </div>
+        <div class="content-card b">
+          <div class="card-icon"></div>
+          <div class="card-inner">
+            <div class="ci-line w-70"></div>
+            <div class="ci-line w-50"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA button -->
+      <div class="cta-area">
+        <div class="cta-btn">
+          <span class="cta-text">Записаться</span>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="nav-bar">
+        <div class="nav-dot active"></div>
+        <div class="nav-dot"></div>
+        <div class="nav-dot"></div>
+        <div class="nav-dot"></div>
+      </div>
+
+    </div><!-- /.screen -->
+
+    <!-- Home indicator -->
+    <div class="home-bar"></div>
+
+  </div><!-- /.phone -->
+</div><!-- /.device-wrapper -->
+
+</body>
+</html>
