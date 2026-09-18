@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone Analyser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 36px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 16px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-bottom: 28px;
+        }
+
+        .lang-toggle {
+            display: inline-flex;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .lang-toggle button {
+            border: none;
+            background: transparent;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .lang-toggle button.active {
+            background: #2563EB;
+            color: #ffffff;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        .field {
+            margin-bottom: 22px;
+        }
+
+        input[type="password"],
+        textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #1e293b;
+            background: #ffffff;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 22px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s, opacity 0.15s;
+        }
+
+        .btn-primary {
+            background: #2563EB;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .spinner-wrap {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-top: 24px;
+            color: #475569;
+            font-size: 15px;
+        }
+
+        .spinner-wrap.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid #dbeafe;
+            border-top-color: #2563EB;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 24px;
+            background: #EFF6FF;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 22px 24px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 15px;
+            color: #1e293b;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .error-box {
+            display: none;
+            margin-top: 24px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #b91c1c;
+            font-size: 15px;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="title">Tone Analyser</h1>
+            <div class="lang-toggle">
+                <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
+                <button id="lang-ru" onclick="setLang('ru')">RU</button>
+            </div>
+        </div>
+        <p class="subtitle" id="subtitle">Get professional feedback on the tone of your writing.</p>
+
+        <div class="field">
+            <label for="text" id="textLabel">Paste your writing here</label>
+            <textarea id="text" placeholder="Paste your writing here..."></textarea>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-primary" id="analyseBtn" onclick="analyse()">Analyse Tone</button>
+            <button class="btn btn-secondary" id="clearBtn" onclick="clearAll()">Clear &amp; Start Again</button>
+        </div>
+
+        <div class="spinner-wrap" id="spinner">
+            <div class="spinner"></div>
+            <span id="spinnerText">Analysing your writing&hellip;</span>
+        </div>
+
+        <div class="result-box" id="result"></div>
+        <div class="error-box" id="error"></div>
+    </div>
+
+    <script>
+        const I18N = {
+            en: {
+                lang: "en",
+                title: "Tone Analyser",
+                subtitle: "Get professional feedback on the tone of your writing.",
+                textLabel: "Paste your writing here",
+                textPlaceholder: "Paste your writing here...",
+                analyse: "Analyse Tone",
+                clear: "Clear & Start Again",
+                spinner: "Analysing your writing…",
+                errNoText: "Please paste some writing to analyse.",
+                errPrefix: "Something went wrong: "
+            },
+            ru: {
+                lang: "ru",
+                title: "Анализатор тона",
+                subtitle: "Получите профессиональную обратную связь о тоне вашего текста.",
+                textLabel: "Вставьте свой текст сюда",
+                textPlaceholder: "Вставьте свой текст сюда...",
+                analyse: "Анализировать тон",
+                clear: "Очистить и начать заново",
+                spinner: "Анализируем ваш текст…",
+                errNoText: "Пожалуйста, вставьте текст для анализа.",
+                errPrefix: "Что-то пошло не так: "
+            }
+        };
+
+        let currentLang = "en";
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = I18N[lang];
+            document.documentElement.lang = t.lang;
+            document.getElementById("title").textContent = t.title;
+            document.getElementById("subtitle").textContent = t.subtitle;
+            document.getElementById("textLabel").textContent = t.textLabel;
+            document.getElementById("text").placeholder = t.textPlaceholder;
+            document.getElementById("analyseBtn").textContent = t.analyse;
+            document.getElementById("clearBtn").textContent = t.clear;
+            document.getElementById("spinnerText").textContent = t.spinner;
+            document.getElementById("lang-en").classList.toggle("active", lang === "en");
+            document.getElementById("lang-ru").classList.toggle("active", lang === "ru");
+        }
+
+        function showError(message) {
+            const box = document.getElementById("error");
+            box.textContent = message;
+            box.classList.add("show");
+        }
+
+        function hideError() {
+            document.getElementById("error").classList.remove("show");
+        }
+
+        function clearAll() {
+            document.getElementById("text").value = "";
+            document.getElementById("result").classList.remove("show");
+            document.getElementById("result").textContent = "";
+            hideError();
+            document.getElementById("spinner").classList.remove("show");
+        }
+
+        async function analyse() {
+            const t = I18N[currentLang];
+            const text = document.getElementById("text").value.trim();
+
+            hideError();
+            document.getElementById("result").classList.remove("show");
+
+            if (!text) {
+                showError(t.errNoText);
+                return;
+            }
+
+            const btn = document.getElementById("analyseBtn");
+            btn.disabled = true;
+            document.getElementById("spinner").classList.add("show");
+
+            try {
+                const response = await fetch("/api/analyse", {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json"
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    let detail = "HTTP " + response.status;
+                    try {
+                        const errData = await response.json();
+                        if (errData && errData.error && errData.error.message) {
+                            detail = errData.error.message;
+                        }
+                    } catch (e) {}
+                    throw new Error(detail);
+                }
+
+                const data = await response.json();
+                const output = (data.content || [])
+                    .filter(block => block.type === "text")
+                    .map(block => block.text)
+                    .join("\n");
+
+                const result = document.getElementById("result");
+                result.textContent = output;
+                result.classList.add("show");
+            } catch (err) {
+                showError(t.errPrefix + err.message);
+            } finally {
+                document.getElementById("spinner").classList.remove("show");
+                btn.disabled = false;
+            }
+        }
+
+        // Initialise in English
+        setLang("en");
+    </script>
+</body>
+</html>

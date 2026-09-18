@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The House Board</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="House Board">
+<meta name="theme-color" content="#5E6CA6">
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Palette from reference: lavender #D1ACD6, lime #CADF91, cream #F7F4E5.
+       4th (background/accent) = soft periwinkle #5E6CA6 — completes the wheel. */
+    --bg-grad: linear-gradient(160deg,#F4F1EA 0%,#E7EAF6 45%,#D9E1F3 100%);
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-strong: rgba(255,255,255,0.74);
+    --glass-stroke: rgba(255,255,255,0.7);
+    --glass-blur: blur(22px) saturate(160%);
+    --glass-shadow: 0 8px 30px rgba(40,45,80,0.12);
+    --radius: 24px;
+    --ink:#24243A; --muted:#6A6A82;
+    --green:#5E6CA6; --karma-glow:#E0A33E; --danger:#C2542F;
+    --room1:#D1ACD6; --room2:#CADF91; --room3:#F7F4E5;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color:var(--ink); background:var(--bg-grad); background-attachment:fixed;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:430px; margin:0 auto; min-height:100vh; position:relative;
+    padding: calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 92px);}
+
+  .glass{background:var(--glass-bg); -webkit-backdrop-filter:var(--glass-blur);
+    backdrop-filter:var(--glass-blur); border:1px solid var(--glass-stroke);
+    border-radius:var(--radius); box-shadow:var(--glass-shadow);}
+
+  /* header */
+  .head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
+  .head h1{font-size:20px; font-weight:800; margin:0; letter-spacing:-.02em}
+  .head .tools{display:flex; align-items:center; gap:8px}
+  .gear{font-size:18px; background:none; border:none; cursor:pointer; padding:6px}
+  .lang{display:inline-flex; gap:2px; padding:4px; border-radius:999px;
+    background:rgba(255,255,255,.5); border:1px solid var(--glass-stroke)}
+  .lang button{border:none; background:none; font:inherit; font-weight:700; font-size:12px;
+    color:var(--muted); padding:6px 12px; border-radius:999px; cursor:pointer}
+  .lang button.on{color:#fff; background:var(--green)}
+
+  .card{padding:18px; margin-bottom:14px}
+  .label{font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 10px}
+
+  /* affirmation */
+  .affirm{padding:16px 18px; margin-bottom:14px; font-family:Georgia,"Times New Roman",serif;
+    font-style:italic; font-size:18px; font-weight:400; line-height:1.45; color:#4A4A63; letter-spacing:.005em}
+
+  /* duty */
+  .duty{padding:20px; margin-bottom:14px; color:#fff; --dutyPill:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25);
+    box-shadow:var(--glass-shadow); border-radius:var(--radius); display:flex; gap:18px; align-items:center}
+  .ring{position:relative; width:104px; height:104px; flex:0 0 auto}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .tk{stroke:rgba(255,255,255,.25)}
+  .ring .fl{stroke:var(--karma-glow); stroke-linecap:round; transition:stroke-dashoffset .6s ease;
+    filter:drop-shadow(0 0 4px rgba(244,196,48,.6))}
+  .ring .c{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+  .ring .d{font-size:28px; font-weight:800; line-height:1}
+  .ring .o{font-size:10px; opacity:.85; margin-top:2px}
+  .duty-info{flex:1; min-width:0}
+  .duty-name{font-size:22px; font-weight:800; background:transparent; border:none; color:inherit;
+    width:100%; padding:0; margin:0 0 2px; letter-spacing:-.01em; font-family:inherit}
+  .duty-name:focus{outline:none; border-bottom:1px dashed rgba(255,255,255,.6)}
+  .edit-hint{font-size:11px; opacity:.8; margin:0 0 8px}
+  .duty-meta{font-size:13px; opacity:.92; margin:1px 0}
+  .duty-next{display:inline-block; margin-top:8px; font-size:12px; font-weight:600;
+    background:var(--dutyPill); padding:5px 11px; border-radius:999px}
+
+  /* karma */
+  .karma-row{display:flex; align-items:center; gap:10px; padding:8px 0}
+  .karma-row + .karma-row{border-top:1px solid rgba(255,255,255,.4)}
+  .dot{width:11px; height:11px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+  .karma-name{flex:1; font-weight:600; font-size:14px}
+  .karma-val{font-weight:800; color:#C99A1E; text-shadow:0 0 8px rgba(244,196,48,.55)}
+
+  /* rotation */
+  .rot-row{display:flex; align-items:center; gap:11px; padding:10px 0}
+  .rot-row + .rot-row{border-top:1px solid rgba(255,255,255,.4)}
+  .rot-name{flex:1; font-weight:600; font-size:14px}
+  .rot-now{font-size:10px; font-weight:800; color:var(--green); text-transform:uppercase; letter-spacing:.05em}
+  .rot-dates{font-size:12px; color:var(--muted)}
+
+  /* buttons */
+  .btn{display:block; width:100%; font:inherit; font-weight:700; font-size:15px; color:var(--ink);
+    border:1px solid var(--glass-stroke); border-radius:16px; padding:14px; cursor:pointer; margin-bottom:10px;
+    background:var(--glass-bg); -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur)}
+  .btn:active{transform:scale(.99)}
+  .btn-row{display:flex; gap:10px}
+  .btn-row .btn{margin-bottom:10px}
+  .btn.primary{background:var(--green); color:#fff; border-color:transparent}
+  .btn.small{font-size:13px; padding:11px}
+
+  /* bottom nav */
+  .nav{position:fixed; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:430px;
+    display:flex; padding:8px 16px calc(env(safe-area-inset-bottom) + 10px); gap:8px;
+    background:var(--glass-strong); -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+    border-top:1px solid var(--glass-stroke); z-index:40}
+  .nav button{flex:1; font:inherit; font-weight:700; font-size:14px; color:var(--muted);
+    background:none; border:none; padding:12px; border-radius:14px; cursor:pointer}
+  .nav button.on{color:var(--green); background:rgba(94,108,166,.14)}
+
+  /* checklist */
+  .tabs{display:flex; gap:8px; margin-bottom:14px}
+  .tab{flex:1; font:inherit; font-weight:700; font-size:13px; color:var(--muted); padding:11px 6px;
+    border:1px solid var(--glass-stroke); border-radius:14px; cursor:pointer;
+    background:var(--glass-bg); -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur)}
+  .tab.on{color:#fff; background:var(--green); border-color:transparent}
+  .prog-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px}
+  .prog-head .p{font-weight:800; color:var(--green)}
+  .bar{height:9px; border-radius:999px; background:rgba(255,255,255,.55); overflow:hidden; margin-bottom:8px}
+  .bar span{display:block; height:100%; background:var(--green); width:0; transition:width .4s ease}
+  .praise{font-size:13px; font-weight:600; color:var(--green); margin:0 0 14px; min-height:18px}
+
+  .cond{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 14px;
+    margin-bottom:10px; font-size:13.5px; font-weight:600}
+  .switch{position:relative; width:44px; height:26px; flex:0 0 auto; border-radius:999px;
+    background:rgba(0,0,0,.16); cursor:pointer; transition:.2s}
+  .switch.on{background:var(--green)}
+  .switch i{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+    background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .switch.on i{left:21px}
+
+  .task{display:flex; gap:12px; align-items:flex-start; padding:11px; border-radius:13px}
+  .task.off{opacity:.45}
+  .task + .task{border-top:1px solid rgba(255,255,255,.45)}
+  .chk{flex:0 0 auto; width:24px; height:24px; margin-top:1px; border-radius:8px; cursor:pointer;
+    border:2px solid rgba(0,0,0,.18); background:rgba(255,255,255,.6); display:flex; align-items:center; justify-content:center; transition:.15s}
+  .chk.on{background:var(--green); border-color:var(--green)}
+  .chk svg{width:13px; height:13px; opacity:0; transition:.15s}
+  .chk.on svg{opacity:1}
+  .task-main{flex:1; min-width:0}
+  .task-title{font-size:15px; font-weight:500}
+  .task.done .task-title{color:var(--muted); text-decoration:line-through}
+  .task-note{font-size:12px; color:var(--muted); margin-top:2px}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:7px}
+  .chip{display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600; color:var(--green);
+    background:rgba(94,108,166,.12); border:1px solid rgba(94,108,166,.22); padding:4px 9px; border-radius:999px; cursor:pointer}
+
+  /* sheets */
+  .scrim{position:fixed; inset:0; background:rgba(20,40,30,.35); -webkit-backdrop-filter:blur(3px);
+    backdrop-filter:blur(3px); opacity:0; pointer-events:none; transition:.25s; z-index:50}
+  .scrim.on{opacity:1; pointer-events:auto}
+  .sheet{position:fixed; left:50%; transform:translate(-50%,100%); bottom:0; width:100%; max-width:430px;
+    max-height:88vh; overflow:auto; background:var(--glass-strong); -webkit-backdrop-filter:var(--glass-blur);
+    backdrop-filter:var(--glass-blur); border-top-left-radius:26px; border-top-right-radius:26px;
+    border:1px solid var(--glass-stroke); padding:22px 18px calc(env(safe-area-inset-bottom) + 24px);
+    transition:transform .28s cubic-bezier(.3,.8,.3,1); z-index:60}
+  .sheet.on{transform:translate(-50%,0)}
+  .sheet h2{font-size:19px; font-weight:800; margin:0 0 14px}
+  .sheet .grip{width:40px; height:4px; border-radius:999px; background:rgba(0,0,0,.18); margin:0 auto 16px}
+  .sheet h3{font-size:15px; font-weight:700; margin:16px 0 8px}
+  .sheet p, .sheet li{font-size:14px; line-height:1.5}
+  .sheet ul{margin:6px 0; padding-left:18px}
+  .prod-photo{width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:18px; background:rgba(0,0,0,.05); margin-bottom:14px}
+  .warn{display:flex; gap:10px; padding:12px 14px; border-radius:14px; background:rgba(194,84,47,.12);
+    border:1px solid rgba(194,84,47,.25); font-size:13px; color:#8a3c24; margin-top:14px}
+
+  ol.steps{margin:8px 0 0; padding:0; list-style:none; counter-reset:s}
+  ol.steps li{counter-increment:s; position:relative; padding:9px 0 9px 38px; border-bottom:1px solid rgba(0,0,0,.07)}
+  ol.steps li:last-child{border-bottom:none}
+  ol.steps li::before{content:counter(s); position:absolute; left:0; top:7px; width:25px; height:25px;
+    border-radius:8px; background:var(--green); color:#fff; font-weight:800; font-size:13px;
+    display:flex; align-items:center; justify-content:center}
+  details summary{cursor:pointer; font-weight:700; padding:6px 0}
+
+  .stock{display:flex; align-items:center; gap:10px; padding:11px 0}
+  .stock + .stock{border-top:1px solid rgba(0,0,0,.07)}
+  .stock-name{flex:1; font-size:14.5px; font-weight:500}
+  .stat{font:inherit; font-weight:700; font-size:12px; padding:6px 12px; border-radius:999px; border:none; cursor:pointer}
+  .stat.in{background:rgba(94,108,166,.16); color:var(--green)}
+  .stat.low{background:rgba(224,163,62,.2); color:#9a6a16}
+  .stat.out{background:rgba(194,84,47,.16); color:var(--danger)}
+
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px}
+  .field input{width:100%; font:inherit; font-size:15px; padding:12px 14px; border-radius:12px;
+    border:1px solid var(--glass-stroke); background:rgba(255,255,255,.6)}
+  .room-edit{display:flex; gap:10px; align-items:center; margin-bottom:10px}
+  .room-edit input[type=color]{width:42px; height:42px; padding:0; border:none; border-radius:10px; background:none; cursor:pointer}
+  .room-edit input[type=text]{flex:1}
+
+  .screen{display:none}
+  .screen.on{display:block}
+
+  /* celebration */
+  .celebrate{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:80;
+    background:rgba(20,40,30,.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); padding:30px}
+  .celebrate.on{display:flex}
+  .celebrate .box{text-align:center; color:#fff; max-width:320px}
+  .celebrate .big{font-size:46px; font-weight:800; color:var(--karma-glow);
+    text-shadow:0 0 14px rgba(244,196,48,.8),0 0 30px rgba(244,196,48,.5); animation:pulse 1.4s ease}
+  .celebrate p{font-size:17px; font-weight:600; margin:12px 0 22px}
+  @keyframes pulse{0%{transform:scale(.7);opacity:0}40%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+
+  /* zone accents */
+  #checkScreen{--zone:#5E6CA6}
+  #checkScreen .bar span{background:var(--zone)}
+  #checkScreen .prog-head .p{color:var(--zone)}
+  #checkScreen .chk.on{background:var(--zone); border-color:var(--zone)}
+  #checkScreen .praise{color:var(--zone)}
+  .tabs .tab[data-zone=bath].on{background:#5E6CA6}
+  .tabs .tab[data-zone=kitchen].on{background:#E08A2B}
+  .tabs .tab[data-zone=common].on{background:#7C8194}
+  .pts-chip{display:inline-block; font-size:12px; font-weight:800; color:var(--zone); margin:0 0 14px}
+  .clean-timer{display:inline-block; font-size:12px; font-weight:800; color:var(--zone); margin:0 0 14px 10px}
+
+  /* tier badges */
+  .tier-row{margin-top:6px}
+  .tier{display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.03em; padding:3px 8px; border-radius:999px; text-transform:uppercase}
+  .tier.hard{background:rgba(194,84,47,.15); color:#B5432A}
+  .tier.medium{background:rgba(224,138,43,.2); color:#B96A15}
+  .tier.basic{background:rgba(94,108,166,.15); color:#4C5992}
+  .tier.easy{background:rgba(120,125,145,.16); color:#5D6274}
+  .tier.bonus{background:rgba(224,163,62,.22); color:#9A6A16}
+
+  /* dissolve + done group */
+  @keyframes dissolveOut{100%{opacity:0; transform:scale(.55); filter:blur(9px)}}
+  .task.dissolving{animation:dissolveOut .6s ease forwards; pointer-events:none; transform-origin:center center}
+  .task.compact{padding:7px 11px; opacity:.6}
+  .task.compact + .task.compact{border-top:1px solid rgba(255,255,255,.4)}
+  .task.compact .task-title{font-size:13px}
+  .task.compact .chk{width:20px; height:20px}
+  .done-div{font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.06em; padding:12px 11px 4px; opacity:.7}
+
+  /* task editor */
+  .task-del{margin-left:auto; flex:0 0 auto; align-self:center; width:26px; height:26px; border-radius:8px;
+    border:none; background:rgba(194,84,47,.14); color:var(--danger); font-weight:800; cursor:pointer}
+  .restore-btn{width:100%; margin-top:10px; font:inherit; font-weight:700; font-size:13px; color:var(--muted);
+    background:none; border:1px dashed var(--glass-stroke); border-radius:12px; padding:10px; cursor:pointer}
+  .add-row{display:flex; gap:8px; align-items:center; padding:10px; margin-bottom:12px}
+  .add-row input{flex:1; min-width:0; font:inherit; font-size:14px; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--glass-stroke); background:rgba(255,255,255,.7)}
+  .add-row select{font:inherit; font-size:13px; padding:9px; border-radius:10px;
+    border:1px solid var(--glass-stroke); background:rgba(255,255,255,.7)}
+  .add-row button{flex:0 0 auto; width:42px; height:42px; border:none; border-radius:10px;
+    background:var(--zone,var(--green)); color:#fff; font-size:16px; cursor:pointer}
+  .check-tools{display:flex; gap:10px; margin-top:14px}
+  .check-tools .btn{margin-bottom:0}
+  .room-edit{flex-wrap:wrap}
+  .room-edit input.rp{flex:1 1 100%; font:inherit; font-size:14px; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--glass-stroke); background:rgba(255,255,255,.6)}
+
+  /* toast */
+  .toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(20px);
+    background:rgba(36,36,58,.95); color:#fff; font-weight:700; font-size:14px; padding:12px 18px;
+    border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.3); opacity:0; pointer-events:none;
+    transition:.3s; z-index:90; max-width:88%; text-align:center}
+  .toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  /* celebration extras */
+  .celebrate .applause{font-size:64px; animation:clap 1.2s ease infinite}
+  @keyframes clap{0%,100%{transform:rotate(-9deg) scale(1)}50%{transform:rotate(9deg) scale(1.13)}}
+  .celebrate .big{font-size:29px; font-weight:800; color:#fff; text-shadow:0 2px 14px rgba(0,0,0,.35); margin-top:4px}
+  .celebrate p{font-size:15px}
+  .cele-stats{display:flex; flex-direction:column; gap:8px; margin:16px 0 2px}
+  .cele-stats span{font-size:16px; font-weight:700; color:#fff; background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.28); padding:10px 14px; border-radius:12px}
+  .confetti{position:absolute; inset:0; overflow:hidden; pointer-events:none}
+  .confetti i{position:absolute; top:-16px; width:10px; height:14px; border-radius:2px; animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(108vh) rotate(560deg); opacity:.85}}
+
+  .salt-btn{flex:0 0 auto; font:inherit; font-weight:800; font-size:12px; padding:9px 13px; border-radius:999px; border:none; cursor:pointer; background:var(--zone,var(--green)); color:#fff}
+  .cond.salt-due{border-color:rgba(194,84,47,.4); background:rgba(194,84,47,.08)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <h1 id="appTitle">🏡 The House Board</h1>
+    <div class="tools">
+      <button class="gear" id="gearBtn" aria-label="Settings">⚙️</button>
+      <div class="lang"><button id="enBtn" class="on">EN</button><button id="ptBtn">PT</button></div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <section class="screen on" id="homeScreen">
+    <div class="affirm glass" id="affirm"></div>
+
+    <div class="duty" id="dutyCard">
+      <div class="ring">
+        <svg width="104" height="104" viewBox="0 0 104 104">
+          <circle class="tk" cx="52" cy="52" r="45" fill="none" stroke-width="11"/>
+          <circle class="fl" id="ring" cx="52" cy="52" r="45" fill="none" stroke-width="11"/>
+        </svg>
+        <div class="c"><span class="d" id="dutyDay">1</span><span class="o" id="ofDays">of 10 days</span></div>
+      </div>
+      <div class="duty-info">
+        <input class="duty-name" id="dutyName" maxlength="22">
+        <p class="edit-hint" id="editHint">✏️ Tap to edit</p>
+        <p class="duty-meta" id="dutyDates"></p>
+        <p class="duty-meta" id="dutyLeft"></p>
+        <span class="duty-next" id="dutyNext"></span>
+      </div>
+    </div>
+
+    <div class="card glass">
+      <p class="label" id="karmaLbl">🏆 Karma</p>
+      <div id="karmaList"></div>
+    </div>
+
+    <div class="card glass">
+      <p class="label" id="rotLbl">📅 Upcoming rotation</p>
+      <div id="rotList"></div>
+    </div>
+
+    <button class="btn" id="boilerBtn">🔥 <span id="boilerBtnTxt">No hot water?</span></button>
+    <div class="btn-row">
+      <button class="btn small" id="supBtn">🧴 <span id="supBtnTxt">Supplies</span></button>
+      <button class="btn small" id="applBtn">🧺 <span id="applBtnTxt">Appliances</span></button>
+    </div>
+    <button class="btn small" id="installBtn">📲 <span id="installBtnTxt">Add to Home Screen</span></button>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section class="screen" id="checkScreen">
+    <div class="tabs">
+      <button class="tab on" data-zone="bath" id="tabBath">🛁 <span></span></button>
+      <button class="tab" data-zone="kitchen" id="tabKitchen">🍳 <span></span></button>
+      <button class="tab" data-zone="common" id="tabCommon">🧹 <span></span></button>
+    </div>
+    <div class="prog-head"><span id="zoneName"></span><span class="p" id="zonePct">0%</span></div>
+    <div class="bar"><span id="zoneBar"></span></div>
+    <p class="praise" id="praise"></p>
+    <span class="pts-chip" id="ptsChip"></span>
+    <span class="clean-timer" id="cleanTimer"></span>
+    <div id="condBox"></div>
+    <div class="add-row glass" id="addRow" style="display:none">
+      <input type="text" id="addInput">
+      <select id="addTier"></select>
+      <button id="addBtn" aria-label="Add">➕</button>
+    </div>
+    <div class="card glass" id="taskList" style="padding:6px 12px"></div>
+    <div class="check-tools">
+      <button class="btn small" id="editBtn">✏️ <span id="editTxt">Edit list</span></button>
+      <button class="btn small" id="resetBtn">↺ <span id="resetTxt">Reset</span></button>
+    </div>
+  </section>
+</div>
+
+<!-- bottom nav -->
+<nav class="nav">
+  <button id="navHome" class="on">🏠 <span id="navHomeTxt">Home</span></button>
+  <button id="navCheck">✅ <span id="navCheckTxt">Checklist</span></button>
+</nav>
+
+<!-- scrim + sheets -->
+<div class="scrim" id="scrim"></div>
+
+<div class="sheet" id="sheetProduct"><div class="grip"></div><div id="productBody"></div>
+  <button class="btn small" data-close style="margin-top:16px" id="closeP1">Close</button></div>
+
+<div class="sheet" id="sheetSupplies"><div class="grip"></div><h2 id="supTitle">🧴 Supplies</h2>
+  <div id="stockList"></div>
+  <button class="btn primary" id="buyBtn" style="margin-top:16px">📲 <span id="buyTxt">Tell Peter to buy (WhatsApp)</span></button>
+  <button class="btn small" data-close>Close</button></div>
+
+<div class="sheet" id="sheetBoiler"><div class="grip"></div><h2 id="boTitle">🔥 No hot water?</h2>
+  <button class="btn primary" id="peterBtn">💬 <span id="peterTxt">Message Peter on WhatsApp</span></button>
+  <details id="boilerDetails"><summary id="boilerSelf">▸ Or restart the boiler yourself</summary>
+    <ol class="steps" id="boilerSteps"></ol></details>
+  <button class="btn small" data-close style="margin-top:14px">Close</button></div>
+
+<div class="sheet" id="sheetAppliances"><div class="grip"></div><h2 id="apTitle">🧺 Appliances</h2>
+  <div id="applBody"></div>
+  <button class="btn small" data-close style="margin-top:8px">Close</button></div>
+
+<div class="sheet" id="sheetInstall"><div class="grip"></div><h2 id="inTitle">📲 Add to Home Screen</h2>
+  <div id="installBody"></div>
+  <button class="btn small" data-close style="margin-top:8px">Close</button></div>
+
+<div class="sheet" id="sheetSettings"><div class="grip"></div><h2 id="setTitle">⚙️ Settings</h2>
+  <div class="field"><label id="startLbl">Rotation start</label><input type="date" id="startDate"></div>
+  <div class="field"><label id="roomsLbl">Room names & colours</label><div id="roomEdits"></div></div>
+  <div class="field"><label id="peterLbl">Peter's WhatsApp number</label><input type="tel" id="peterPhone" placeholder="353871234567"></div>
+  <button class="btn small" data-close>Close</button></div>
+
+<!-- celebration -->
+<div class="celebrate" id="celebrate">
+  <div class="confetti" id="confetti"></div>
+  <div class="box">
+    <div class="applause">👏</div>
+    <div class="big" id="celebrateBig"></div>
+    <p id="celebrateTxt"></p>
+    <div class="cele-stats" id="celeStats"></div>
+    <button class="btn primary" id="celebrateClose" style="max-width:220px;margin:14px auto 0">🎉 <span id="celeCloseTxt">Nice!</span></button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------------- data ---------------- */
+const PRODUCTS = {
+  p_pinkpaste:{tag:"paste",photo:"assets/pink-stuff-paste.jpg",
+    name:{en:"The Pink Stuff — Cleaning Paste",pt:"The Pink Stuff — Pasta de Limpeza"},
+    what:{en:"Mild abrasive paste. Lifts grime, soap scum and burnt-on stains.",pt:"Pasta abrasiva suave. Remove sujeira, marcas de sabão e manchas grudadas."},
+    where:{en:"Shower tiles, sink, bath, taps, hob, pots.",pt:"Azulejos do chuveiro, pia, banheira, torneiras, fogão, panelas."}},
+  p_pinkdis:{tag:"disinfectant",photo:"assets/pink-stuff-disinfectant.jpg",
+    name:{en:"The Pink Stuff — Power Disinfectant",pt:"The Pink Stuff — Desinfetante"},
+    what:{en:"Disinfects and cleans surfaces.",pt:"Desinfeta e limpa superfícies."},
+    where:{en:"Toilet handles, flush button, door handles, switches, work surfaces.",pt:"Alças do vaso, botão de descarga, maçanetas, interruptores, bancadas."}},
+  p_mrmglass:{tag:"acid",photo:"assets/mr-muscle-glass.jpg",
+    name:{en:"Mr Muscle — Window & Glass (with vinegar)",pt:"Mr Muscle — Vidros (com vinagre)"},
+    what:{en:"Streak-free glass and mirror shine.",pt:"Brilho sem marcas em vidros e espelhos."},
+    where:{en:"Mirrors, windows, shower glass, shiny surfaces (with paper towels).",pt:"Espelhos, janelas, vidro do chuveiro, superfícies brilhantes (com papel toalha)."}},
+  p_mrmshower:{tag:"surface",photo:"assets/mr-muscle-shower.jpg",
+    name:{en:"Mr Muscle — Shower Shine",pt:"Mr Muscle — Brilho do Chuveiro"},
+    what:{en:"Prevents soap scum and limescale build-up.",pt:"Evita acúmulo de sabão e calcário."},
+    where:{en:"Shower walls, glass and tiles — spray after showering.",pt:"Paredes, vidro e azulejos do chuveiro — borrife após o banho."}},
+  p_flash:{tag:"bleach",photo:"assets/flash-bleach-spray.jpg",
+    name:{en:"Flash — Bleach Hygiene Spray",pt:"Flash — Spray com Cloro"},
+    what:{en:"Disinfects and removes stains.",pt:"Desinfeta e remove manchas."},
+    where:{en:"Bathroom and kitchen surfaces, sink, around the bin.",pt:"Superfícies do banheiro e cozinha, pia, perto da lixeira."}},
+  p_thickbleach:{tag:"bleach",photo:"assets/thick-bleach.jpg",
+    name:{en:"Tesco — Thick Bleach (Lemon)",pt:"Tesco — Água Sanitária Grossa (Limão)"},
+    what:{en:"Thick bleach gel. Kills germs and whitens.",pt:"Gel de cloro. Mata germes e clareia."},
+    where:{en:"Toilet under the rim, sink whitening, drains, soaking the mop, the bin.",pt:"Vaso sob a borda, clarear a pia, ralos, molho do esfregão, lixeira."}},
+  p_oven:{tag:"degreaser",photo:"assets/oven-foam.jpg",
+    name:{en:"Xanto Zazzoosh — Oven & BBQ Foam",pt:"Xanto Zazzoosh — Espuma para Forno"},
+    what:{en:"Cuts baked-on grease, no scrubbing.",pt:"Dissolve gordura grudada, sem esfregar."},
+    where:{en:"Oven after greasy cooking: spray, wait ~30 min, wipe.",pt:"Forno após cozinhar gorduroso: borrife, espere ~30 min, limpe."}},
+  p_dettol:{tag:"disinfectant",photo:"assets/dettol.jpg",
+    name:{en:"Dettol — Antiseptic Disinfectant",pt:"Dettol — Desinfetante Antisséptico"},
+    what:{en:"Multi-purpose disinfectant (dilute in water).",pt:"Desinfetante multiuso (dilua na água)."},
+    where:{en:"Floors, surfaces, the bin — diluted.",pt:"Chãos, superfícies, lixeira — diluído."}},
+  p_scourers:{tag:"tool",photo:"assets/sponge-scourers.jpg",
+    name:{en:"Tesco — Sponge Scourers",pt:"Tesco — Esponjas Abrasivas"},
+    what:{en:"Scrub stubborn and burnt-on stains.",pt:"Esfrega manchas difíceis e grudadas."},
+    where:{en:"With the paste: pots, hob, sink, shower tiles.",pt:"Com a pasta: panelas, fogão, pia, azulejos."}},
+  p_fairy:{tag:"dishwasher",photo:"assets/fairy-dishwasher-tablets.jpg",
+    name:{en:"Fairy Platinum Plus — Dishwasher Capsules",pt:"Fairy Platinum Plus — Cápsulas"},
+    what:{en:"All-in-one dishwasher tablets.",pt:"Pastilhas tudo-em-um para lava-louças."},
+    where:{en:"The dishwasher (usual spot).",pt:"O lava-louças (lugar de sempre)."}},
+  p_citric:{tag:"acid",photo:"assets/citric-acid.jpg",
+    name:{en:"Citric Acid",pt:"Ácido Cítrico"},
+    what:{en:"Descaler — removes limescale.",pt:"Descalcificante — remove calcário."},
+    where:{en:"Kettle (periodically), taps.",pt:"Chaleira (periodicamente), torneiras."}},
+  p_dishjet:{tag:"tool",photo:"assets/dish-jet.jpg",
+    name:{en:"Dish Jet — Fill & Scrub Brush",pt:"Dish Jet — Escova com Esponja"},
+    what:{en:"Sponge brush with a fill handle. Handy for scrubbing while you clean.",pt:"Escova com esponja e cabo. Prática para esfregar durante a limpeza."},
+    where:{en:"Bathroom, shower glass and wall tiles, bath, sink.",pt:"Banheiro, vidro e azulejos do chuveiro, banheira, pia."}},
+  p_mrproper:{tag:"surface",photo:"assets/mr-proper.jpg",
+    name:{en:"Mr Proper — Floor Cleaner (Lemon)",pt:"Mr Proper — Limpador de Chão (Limão)"},
+    what:{en:"Floor cleaner — dilute in water. An alternative to Dettol for floors.",pt:"Limpador de chão — dilua na água. Alternativa ao Dettol para chãos."},
+    where:{en:"Floors — diluted in a bucket of warm water.",pt:"Chãos — diluído num balde de água morna."}},
+};
+
+const TASKS = [
+  // BATHROOM — hardest first
+  {id:"b_tiles",zone:"bath",type:"required",tier:"hard",p:["p_pinkpaste","p_scourers","p_dishjet"],en:["Shower — wall tiles & glass (soap scum)","💪 The big one — take your time"],pt:["Chuveiro — azulejos e vidro (sabão)","💪 A tarefa pesada — com calma"]},
+  {id:"b_shower",zone:"bath",type:"required",tier:"medium",p:["p_mrmshower","p_mrmglass","p_dishjet"],en:["Shower — rinse glass + clear the drain",""],pt:["Chuveiro — enxágue o vidro + limpe o ralo",""]},
+  {id:"b_toilet",zone:"bath",type:"required",tier:"basic",p:["p_thickbleach"],en:["Toilet bowl",""],pt:["Vaso sanitário",""]},
+  {id:"b_floor",zone:"bath",type:"required",tier:"basic",p:["p_dettol","p_mrproper"],en:["Bathroom floor",""],pt:["Chão do banheiro",""]},
+  {id:"b_handles",zone:"bath",type:"required",tier:"easy",p:["p_pinkdis"],en:["Toilet handles & flush button",""],pt:["Alças do vaso e descarga",""]},
+  {id:"b_mirror",zone:"bath",type:"required",tier:"easy",p:["p_mrmglass"],en:["Mirror",""],pt:["Espelho",""]},
+  {id:"b_mop",zone:"bath",type:"required",tier:"easy",p:["p_thickbleach"],en:["Soak the mop in bleach overnight 🌙",""],pt:["Molho do esfregão na água sanitária 🌙",""]},
+  {id:"b_towel",zone:"bath",type:"firstWeek",tier:"easy",p:[],en:["Wash the hand towel","🗓️ First week of your shift"],pt:["Lave a toalha de mão","🗓️ Primeira semana do turno"]},
+
+  // KITCHEN — start with microwave / oven / trays
+  {id:"k_check",zone:"kitchen",type:"required",tier:"hard",p:["p_pinkpaste"],en:["First: microwave, oven & trays — check they're clean","👀 Start here. Clean with Pink Stuff if needed"],pt:["Primeiro: micro-ondas, forno e bandejas — veja se estão limpos","👀 Comece aqui. Limpe com Pink Stuff se precisar"]},
+  {id:"k_hob",zone:"kitchen",type:"required",tier:"medium",p:["p_pinkpaste","p_scourers"],en:["Hob & greasy surfaces",""],pt:["Fogão e superfícies gordurosas",""]},
+  {id:"k_fridge",zone:"kitchen",type:"required",tier:"medium",p:[],en:["Fridge — keep it clean","❄️ Baking soda + water. Colder in summer (1–2)"],pt:["Geladeira — manter limpa","❄️ Bicarbonato + água. Mais frio no verão (1–2)"]},
+  {id:"k_sink",zone:"kitchen",type:"required",tier:"basic",p:["p_flash","p_thickbleach"],en:["Kitchen sink — whiten",""],pt:["Pia — clarear",""]},
+  {id:"k_bin",zone:"kitchen",type:"required",tier:"basic",p:["p_flash","p_thickbleach"],en:["Wash the bin with bleach",""],pt:["Lavar a lixeira com cloro",""]},
+  {id:"k_vac",zone:"kitchen",type:"required",tier:"basic",p:[],en:["Vacuum the kitchen",""],pt:["Aspirar a cozinha",""]},
+  {id:"k_floor",zone:"kitchen",type:"required",tier:"basic",p:["p_dettol","p_mrproper"],en:["Mop the kitchen floor",""],pt:["Passar pano na cozinha",""]},
+  {id:"k_dw",zone:"kitchen",type:"required",tier:"easy",p:[],en:["Empty the dishwasher",""],pt:["Esvaziar a lava-louças",""]},
+  {id:"k_table",zone:"kitchen",type:"required",tier:"easy",p:["p_mrmglass"],en:["Table & shiny surfaces","With paper towels"],pt:["Mesa e superfícies brilhantes","Com papel toalha"]},
+  {id:"k_cloths",zone:"kitchen",type:"required",tier:"easy",p:[],en:["Keep cloths & sponges clean",""],pt:["Manter panos e esponjas limpos",""]},
+  {id:"k_kettle",zone:"kitchen",type:"periodic",tier:"easy",p:["p_citric"],en:["Descale the kettle","🔁 Periodically"],pt:["Descalcificar a chaleira","🔁 Periodicamente"]},
+  {id:"k_salt",zone:"kitchen",type:"periodic",tier:"easy",p:[],en:["Check dishwasher salt & rinse aid","Refill when the 'S' light is on"],pt:["Verificar sal e abrilhantador","Reabasteça quando a luz 'S' acender"]},
+
+  // SHARED
+  {id:"c_floor",zone:"common",type:"required",tier:"basic",p:["p_dettol","p_mrproper"],en:["Mop the floors",""],pt:["Passar pano nos chãos",""]},
+  {id:"c_vac",zone:"common",type:"required",tier:"basic",p:[],en:["Vacuum the hallway",""],pt:["Aspirar o corredor",""]},
+  {id:"c_black",zone:"common",type:"required",tier:"basic",p:[],en:["General waste → black bin 🗑️",""],pt:["Lixo comum → lixeira preta 🗑️",""]},
+  {id:"c_green",zone:"common",type:"required",tier:"basic",p:[],en:["Recycling → green bin ♻️",""],pt:["Reciclagem → lixeira verde ♻️",""]},
+  {id:"c_switches",zone:"common",type:"required",tier:"easy",p:["p_pinkdis"],en:["Light switches & door handles",""],pt:["Interruptores e maçanetas",""]},
+  {id:"c_skirt",zone:"common",type:"bonus",tier:"bonus",p:[],en:["Wipe the skirting boards","➕ Bonus — extra karma"],pt:["Limpar os rodapés","➕ Bônus — karma extra"]},
+  {id:"c_curtains",zone:"common",type:"bonus",tier:"bonus",p:[],en:["Wash the curtains","➕ Bonus — extra karma"],pt:["Lavar as cortinas","➕ Bônus — karma extra"]},
+];
+const TIER_PTS={easy:1,basic:2,medium:3,hard:5,bonus:4};
+const ZONE_ACCENT={bath:"#5E6CA6",kitchen:"#E08A2B",common:"#7C8194"};
+
+const AFFIRM = [
+  {en:"🏡 A tidy home is a calm mind.",pt:"🏡 Casa arrumada, mente tranquila."},
+  {en:"✨ Small efforts today, a cosy home tomorrow.",pt:"✨ Pequenos esforços hoje, um lar aconchegante amanhã."},
+  {en:"🌿 Care for your space, and it cares for you.",pt:"🌿 Cuide do seu espaço e ele cuida de você."},
+  {en:"☕ A clean kitchen makes mornings sweeter.",pt:"☕ Cozinha limpa deixa as manhãs mais doces."},
+  {en:"🕊️ Order brings ease — you've got this.",pt:"🕊️ A ordem traz leveza — você consegue."},
+  {en:"🌞 A fresh home is a fresh start.",pt:"🌞 Casa renovada é um recomeço."},
+  {en:"💚 Home is a team effort — thank you for yours.",pt:"💚 O lar é trabalho de equipe — obrigado pelo seu."},
+  {en:"🧺 Little by little, the home stays bright.",pt:"🧺 Aos poucos, o lar continua brilhando."},
+  {en:"🌸 Tidy corners, peaceful days.",pt:"🌸 Cantos arrumados, dias serenos."},
+  {en:"🔆 You make this place feel like home.",pt:"🔆 Você faz deste lugar um lar."},
+  {en:"🍃 A calm space leaves room for good things.",pt:"🍃 Um espaço calmo abre espaço para coisas boas."},
+  {en:"⭐ Cosy is a habit — keep it glowing.",pt:"⭐ Aconchego é um hábito — mantenha o brilho."},
+];
+
+const T = {
+  en:{ appTitle:"🏡 The House Board", ofDays:"of 10 days", editHint:"✏️ Tap to edit",
+    shift:"Shift", daysLeft:"Days left ⏳", next:"Next", karma:"🏆 Karma", rotation:"📅 Upcoming rotation",
+    now:"now", navHome:"Home", navCheck:"Checklist", boiler:"No hot water?", supplies:"Supplies",
+    appliances:"Appliances", install:"Add to Home Screen", reset:"Reset",
+    bath:"Bathroom", kitchen:"Kitchen", common:"Shared",
+    tierHard:"Tough", tierMedium:"Medium", tierBasic:"Core", tierEasy:"Easy", tierBonus:"Bonus",
+    thanksHard:"💪 Thank you for the tough one!", ptsEarned:"pts",
+    greatJob:"Amazing work", tookYou:"Cleaned in", overTime:"Great — no rush, take your time!",
+    celeSub:"Everything sparkles ✨", celeClose:"Nice!",
+    editTasks:"Edit list", doneEdit:"Done", addPh:"New task…", restore:"Restore removed", personLbl:"Your name",
+    saltTitle:"Dishwasher salt", saltLast:"Last refill", saltNever:"Tap when you fill the salt", saltDone:"Filled today", saltDue:"Time to top up the salt!", daysAgo:"days ago",
+    halfway:"💪 Halfway there — keep going!", zoneDone:"✨ All done in here!",
+    condOven:"🍳 Did anyone cook greasy?", condCurtains:"🪟 Curtains need a wash?", condAppliance:"🧺 Did a machine ask for a clean?",
+    whatDoes:"✨ What it does", whereUse:"📍 Where to use", close:"Close",
+    warnBleach:"⚠️ Bleach — never mix with acids or vinegar.",
+    warnAcid:"⚠️ Acid — never mix with bleach.",
+    warnGrease:"🧤 Wear gloves, ventilate, keep off skin & eyes.",
+    msgPeter:"Message Peter on WhatsApp", peterMsgBoiler:"Hi Peter, there's no hot water at the house 🙏",
+    boilerSelf:"▸ Or restart the boiler yourself",
+    steps:["🔵 Open the blue valve (turn it).","📈 Bring the pressure up to 2.","⛔ At 2, close the blue valve straight away.","🔄 Press restart. The water heats up. 🔥"],
+    buyPeter:"Tell Peter to buy (WhatsApp)", peterMsgBuy:"Hi Peter, we need to buy: ",
+    inStock:"In", low:"Low", out:"Out",
+    setTitle:"⚙️ Settings", startLbl:"Rotation start", roomsLbl:"Room names & colours", peterLbl:"Peter's WhatsApp number",
+    celebrate:"Spotless! +100 karma to {room} ✨ You're a legend! 💚",
+    install_ios_h:"iPhone (Safari)", install_and_h:"Android (Chrome)",
+    install_ios:["Open the link in Safari.","Tap the Share button ⬆️.","Tap “Add to Home Screen”.","Tap “Add” ✅."],
+    install_and:["Open the link in Chrome.","Tap the ⋮ menu (top right).","Tap “Add to Home screen”.","Tap “Add / Install” ✅."],
+    dish_h:"🍽 Dishwasher", wash_h:"👕 Washing machine",
+    dish:["Scrape & rinse plates before loading — no rice or food chunks, or it blocks and can break.","Tablets: Fairy Platinum Plus, in the usual spot.","Keep salt topped up — refill when the salt light (the 'S' icon) comes on.","To refill: open the cap at the bottom, pour salt until full. Water inside is normal.","Dublin water ≈ every 1–2 months. Sign: cloudy/milky glasses.","Top up rinse aid when its light shows.","Smells or Machine Care (brush) light? Order Finish dishwasher cleaner, run a hot empty cycle."],
+    wash:["If it asks for a cleaning cycle (drum clean), run it — empty, hottest setting.","Wipe the door seal; leave the door ajar to keep it fresh."]
+  },
+  pt:{ appTitle:"🏡 Mural da Casa", ofDays:"de 10 dias", editHint:"✏️ Toque para editar",
+    shift:"Turno", daysLeft:"Dias restantes ⏳", next:"Próximo", karma:"🏆 Karma", rotation:"📅 Próximo rodízio",
+    now:"agora", navHome:"Início", navCheck:"Tarefas", boiler:"Sem água quente?", supplies:"Estoque",
+    appliances:"Aparelhos", install:"Adicionar à tela", reset:"Limpar",
+    bath:"Banheiro", kitchen:"Cozinha", common:"Comuns",
+    tierHard:"Difícil", tierMedium:"Médio", tierBasic:"Base", tierEasy:"Fácil", tierBonus:"Bônus",
+    thanksHard:"💪 Obrigado por encarar a tarefa pesada!", ptsEarned:"pts",
+    greatJob:"Trabalho incrível", tookYou:"Limpou em", overTime:"Ótimo — sem pressa!",
+    celeSub:"Tudo brilhando ✨", celeClose:"Show!",
+    editTasks:"Editar lista", doneEdit:"Pronto", addPh:"Nova tarefa…", restore:"Restaurar removidas", personLbl:"Seu nome",
+    saltTitle:"Sal da lava-louças", saltLast:"Último abastecimento", saltNever:"Toque ao completar o sal", saltDone:"Abastecido hoje", saltDue:"Hora de completar o sal!", daysAgo:"dias atrás",
+    halfway:"💪 Na metade — continue!", zoneDone:"✨ Tudo pronto aqui!",
+    condOven:"🍳 Alguém cozinhou gorduroso?", condCurtains:"🪟 As cortinas precisam lavar?", condAppliance:"🧺 Alguma máquina pediu limpeza?",
+    whatDoes:"✨ O que faz", whereUse:"📍 Onde usar", close:"Fechar",
+    warnBleach:"⚠️ Cloro — nunca misture com ácidos ou vinagre.",
+    warnAcid:"⚠️ Ácido — nunca misture com cloro.",
+    warnGrease:"🧤 Use luvas, ventile, evite pele e olhos.",
+    msgPeter:"Falar com o Peter no WhatsApp", peterMsgBoiler:"Oi Peter, está sem água quente na casa 🙏",
+    boilerSelf:"▸ Ou reinicie a caldeira você mesmo",
+    steps:["🔵 Abra a válvula azul (gire-a).","📈 Leve a pressão até 2.","⛔ Ao chegar a 2, feche a válvula imediatamente.","🔄 Aperte restart. A água esquenta. 🔥"],
+    buyPeter:"Pedir ao Peter (WhatsApp)", peterMsgBuy:"Oi Peter, precisamos comprar: ",
+    inStock:"Tem", low:"Pouco", out:"Acabou",
+    setTitle:"⚙️ Configurações", startLbl:"Início do rodízio", roomsLbl:"Nomes e cores dos quartos", peterLbl:"Número do Peter (WhatsApp)",
+    celebrate:"Tudo limpo! +100 de karma para {room} ✨ Você é uma lenda! 💚",
+    install_ios_h:"iPhone (Safari)", install_and_h:"Android (Chrome)",
+    install_ios:["Abra o link no Safari.","Toque em Compartilhar ⬆️.","Toque em “Adicionar à Tela de Início”.","Toque em “Adicionar” ✅."],
+    install_and:["Abra o link no Chrome.","Toque no menu ⋮ (canto superior).","Toque em “Adicionar à tela inicial”.","Toque em “Adicionar / Instalar” ✅."],
+    dish_h:"🍽 Lava-louças", wash_h:"👕 Máquina de lavar",
+    dish:["Raspe e enxágue os pratos antes — sem arroz ou restos, senão entope e pode quebrar.","Pastilhas: Fairy Platinum Plus, no lugar de sempre.","Mantenha o sal em dia — reabasteça quando a luz do sal (ícone 'S') acender.","Para reabastecer: abra a tampa no fundo, coloque sal até encher. Água dentro é normal.","Água de Dublin ≈ a cada 1–2 meses. Sinal: copos opacos.","Complete o abrilhantador quando a luz acender.","Cheiro ruim ou luz Machine Care (pincel)? Peça limpa-máquinas Finish, rode ciclo quente vazio."],
+    wash:["Se pedir um ciclo de limpeza (do tambor), rode-o — vazio, no mais quente.","Limpe a borracha da porta; deixe-a entreaberta para arejar."]
+  }
+};
+
+/* ---------------- state + storage ---------------- */
+const KEY="house-board-v1";
+function todayISO(){const d=new Date();d.setHours(0,0,0,0);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+const defaults={ lang:"en", start:todayISO(), peter:"353838844234",
+  rooms:[{name:"Maria - Room 1",color:"#D1ACD6",karma:0,person:""},{name:"Gabriel - Room 2",color:"#CADF91",karma:0,person:""},{name:"Elisabete - Room 3",color:"#F7F4E5",karma:0,person:""}],
+  checks:{}, conditions:{}, awarded:[], timer:{}, hidden:[], custom:{}, saltDate:"",
+  stock:[ "Thick Bleach","Flash Bleach Spray","Pink Stuff paste","Pink Stuff disinfectant","Mr Muscle Glass","Mr Muscle Shower Shine","Oven foam","Dettol","Citric Acid","Sponge scourers","Cloths","Paper towels","Bin bags","Fairy tablets","Dishwasher salt","Rinse aid","Finish dishwasher cleaner"
+  ].map(n=>({name:n,status:"in"})) };
+let mem=null, S=null;
+function load(){ try{ const r=localStorage.getItem(KEY); S=r?Object.assign(structuredClone(defaults),JSON.parse(r)):structuredClone(defaults);}
+  catch(e){ S=mem||structuredClone(defaults);} }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ mem=S; } }
+
+/* ---------------- helpers ---------------- */
+const $=id=>document.getElementById(id);
+const L=()=>T[S.lang];
+const DAY=86400000;
+function parseISO(s){const p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function fmt(d){return d.toLocaleDateString(S.lang==="pt"?"pt-BR":"en-IE",{day:"numeric",month:"short"});}
+function darken(hex,a){const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  r=Math.round(r*(1-a));g=Math.round(g*(1-a));b=Math.round(b*(1-a));
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}
+function lum(hex){const n=parseInt(hex.slice(1),16);const f=c=>{c/=255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4);};
+  return .2126*f((n>>16)&255)+.7152*f((n>>8)&255)+.0722*f(n&255);}
+function rotation(){
+  const start=parseISO(S.start); const now=new Date(); now.setHours(0,0,0,0);
+  let days=Math.floor((now-start)/DAY); if(days<0)days=0;
+  const period=Math.floor(days/10); const room=((period%3)+3)%3;
+  const dip=days%10; const pStart=new Date(start.getTime()+period*10*DAY);
+  return {period,room,dayShow:dip+1,left:10-dip,pStart,pEnd:new Date(pStart.getTime()+9*DAY),first:dip+1<=7};
+}
+function shiftKey(){return "s"+rotation().period;}
+function conds(){ const k=shiftKey(); if(!S.conditions[k])S.conditions[k]={oven:false,curtains:false,appliance:false}; return S.conditions[k]; }
+function isOn(task){ // shown as active (not dimmed) & tappable
+  if(task.type==="required"||task.type==="periodic"||task.type==="bonus")return true;
+  if(task.type==="firstWeek")return rotation().first;
+  if(task.type==="asNeeded")return !!conds()[task.cond];
+  return false;
+}
+function counts(task){ // counts toward % and 100% completion
+  if(task.type==="bonus")return false;
+  return isOn(task);
+}
+function taskPts(t){ return TIER_PTS[t.tier]||1; }
+function customList(zone){ return (S.custom&&S.custom[zone])||[]; }
+function zoneTasks(zone){
+  return [...TASKS.filter(t=>t.zone===zone && (S.hidden||[]).indexOf(t.id)<0), ...customList(zone)];
+}
+function getAllTasks(){ return ["bath","kitchen","common"].reduce((a,z)=>a.concat(zoneTasks(z)),[]); }
+function pointsEarned(){
+  const ch=S.checks[shiftKey()]||{}; let p=0;
+  getAllTasks().forEach(t=>{ if(isOn(t)&&ch[t.id]) p+=taskPts(t); });
+  return p;
+}
+
+/* ---------------- sound (user audio files) ---------------- */
+const SND_DONE="assets/sound-done.mp3";      // per-task collapse
+const SND_COMPLETE="assets/sound-complete.mp3"; // 100% completion
+const _completeAudio=new Audio(SND_COMPLETE); _completeAudio.preload="auto"; _completeAudio.volume=0.9;
+function playDissolve(){ try{ const s=new Audio(SND_DONE); s.volume=0.4; s.play().catch(()=>{}); }catch(e){} }
+function playApplause(){ try{ _completeAudio.currentTime=0; _completeAudio.play().catch(()=>{}); }catch(e){} }
+function toast(msg){
+  let el=$("toast"); if(!el){ el=document.createElement("div"); el.id="toast"; el.className="toast"; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2400);
+}
+
+/* ---------------- timer + commit ---------------- */
+function timerRec(){ const k=shiftKey(); if(!S.timer)S.timer={}; if(!S.timer[k])S.timer[k]={start:0}; return S.timer[k]; }
+function commitCheck(t){
+  const k=shiftKey(); if(!S.checks[k])S.checks[k]={};
+  const tr=timerRec(), now=Date.now();
+  if(tr.start && (now-tr.start)>7200000) tr.start=now; // >2h: close stale session, restart
+  if(!tr.start) tr.start=now;
+  S.checks[k][t.id]=true; save(); renderCheck();
+  if(t.tier==="hard") toast(L().thanksHard);
+  maybeCelebrate();
+}
+function commitUncheck(t){ const k=shiftKey(); if(S.checks[k]) delete S.checks[k][t.id]; save(); renderCheck(); }
+function fmtDur(ms){ if(!ms||ms<0)return ""; const m=Math.round(ms/60000);
+  if(m<1)return "<1 min"; if(m<60)return m+" min"; const h=Math.floor(m/60), mm=m%60; return h+" h"+(mm?" "+mm+" min":""); }
+function updateTimer(){
+  const el=$("cleanTimer"); if(!el)return;
+  const tr=(S.timer&&S.timer[shiftKey()])||null;
+  if(!tr||!tr.start){ el.textContent=""; return; }
+  let ms=Date.now()-tr.start;
+  if(ms>=7200000){ tr.start=0; save(); el.textContent=""; return; } // auto-reset after 2h
+  const s=Math.floor(ms/1000), m=Math.floor(s/60), ss=s%60;
+  el.textContent="⏱️ "+m+":"+String(ss).padStart(2,"0");
+}
+
+/* ---------------- render: HOME ---------------- */
+const C=2*Math.PI*45;
+function renderHome(){
+  const r=rotation(), room=S.rooms[r.room], col=room.color;
+  $("affirm").textContent=AFFIRM[new Date().getMonth()][S.lang];
+  // duty card
+  const deep=darken(col,.45);
+  $("dutyCard").style.background="linear-gradient(140deg,"+col+","+deep+")";
+  const light=lum(deep)>0.5;
+  $("dutyCard").style.color=light?"#2E2440":"#fff";
+  $("dutyCard").style.setProperty("--dutyPill", light?"rgba(0,0,0,.10)":"rgba(255,255,255,.18)");
+  $("ofDays").textContent=L().ofDays;
+  $("dutyDay").textContent=r.dayShow;
+  $("dutyName").value=room.name;
+  $("editHint").textContent=L().editHint;
+  $("dutyDates").textContent=L().shift+": "+fmt(r.pStart)+" — "+fmt(r.pEnd);
+  $("dutyLeft").textContent=L().daysLeft+": "+r.left;
+  $("dutyNext").textContent=L().next+": "+S.rooms[(r.room+1)%3].name;
+  const ring=$("ring"); ring.setAttribute("stroke-dasharray",C.toFixed(2));
+  ring.setAttribute("stroke-dashoffset",(C*(1-r.dayShow/10)).toFixed(2));
+  // karma
+  $("karmaLbl").textContent=L().karma;
+  $("karmaList").innerHTML=S.rooms.map(rm=>
+    '<div class="karma-row"><span class="dot" style="background:'+rm.color+'"></span>'+
+    '<span class="karma-name">'+esc(rm.name)+'</span><span class="karma-val">'+rm.karma+' ✨</span></div>').join("");
+  // rotation
+  $("rotLbl").textContent=L().rotation;
+  const start=parseISO(S.start); let html="";
+  for(let i=0;i<3;i++){const period=r.period+i; const rm=((period%3)+3)%3;
+    const s=new Date(start.getTime()+period*10*DAY), e=new Date(s.getTime()+9*DAY);
+    html+='<div class="rot-row"><span class="dot" style="background:'+S.rooms[rm].color+'"></span>'+
+      '<span class="rot-name">'+esc(S.rooms[rm].name)+(i===0?' <span class="rot-now">'+L().now+'</span>':'')+
+      '</span><span class="rot-dates">'+fmt(s)+' — '+fmt(e)+'</span></div>';}
+  $("rotList").innerHTML=html;
+  // button labels
+  $("boilerBtnTxt").textContent=L().boiler; $("supBtnTxt").textContent=L().supplies;
+  $("applBtnTxt").textContent=L().appliances; $("installBtnTxt").textContent=L().install;
+}
+
+/* ---------------- render: CHECKLIST ---------------- */
+let activeZone="bath", editMode=false;
+function renderCheck(){
+  $("tabBath").querySelector("span").textContent=L().bath;
+  $("tabKitchen").querySelector("span").textContent=L().kitchen;
+  $("tabCommon").querySelector("span").textContent=L().common;
+  $("resetTxt").textContent=L().reset;
+  $("editTxt").textContent=editMode?L().doneEdit:L().editTasks;
+  $("addInput").placeholder=L().addPh;
+  $("addRow").style.display=editMode?"flex":"none";
+  $("zoneName").textContent=L()[activeZone];
+  $("checkScreen").style.setProperty("--zone", ZONE_ACCENT[activeZone]||"#5E6CA6");
+  const k=shiftKey(); const ch=S.checks[k]||{};
+  // conditions for this zone (asNeeded toggles)
+  const condBox=$("condBox"); condBox.innerHTML="";
+  if(activeZone==="kitchen"){
+    const last=S.saltDate?parseISO(S.saltDate):null;
+    const days=last?Math.floor((Date.now()-last.getTime())/DAY):null;
+    const due=(days===null)||days>=30;
+    const info=last?(L().saltLast+": "+fmt(last)+" · "+days+" "+L().daysAgo):L().saltNever;
+    const row=document.createElement("div"); row.className="cond glass"+(due?" salt-due":"");
+    row.innerHTML='<div style="flex:1"><div style="font-weight:800">🧂 '+L().saltTitle+'</div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-top:3px">'+esc(info)+(due?' — <b style="color:var(--danger)">'+esc(L().saltDue)+'</b>':'')+'</div></div>';
+    const btn=document.createElement("button"); btn.className="salt-btn"; btn.textContent=L().saltDone;
+    btn.addEventListener("click",()=>{ S.saltDate=todayISO(); save(); renderCheck(); });
+    row.appendChild(btn);
+    condBox.appendChild(row);
+  }
+  // tasks
+  const W={hard:0,medium:1,basic:2,easy:3,bonus:4};
+  const zt=zoneTasks(activeZone);
+  const notDone=zt.filter(t=>isOn(t)&&!ch[t.id]).sort((a,b)=>(W[a.tier]??2)-(W[b.tier]??2));
+  const doneT=zt.filter(t=>isOn(t)&&ch[t.id]);
+  const tierLbl={hard:L().tierHard,medium:L().tierMedium,basic:L().tierBasic,easy:L().tierEasy,bonus:L().tierBonus};
+  function chipsFor(t){ let s=""; (t.p||[]).forEach(pid=>{const pr=PRODUCTS[pid]; if(pr) s+='<span class="chip" data-pid="'+pid+'">🧴 '+esc(pr.name[S.lang].split(" — ")[0])+' ›</span>';}); return s; }
+  function makeTask(t, compact){
+    const tx=t[S.lang]; const done=!!ch[t.id];
+    const el=document.createElement("div"); el.className="task"+(done?" done":"")+(compact?" compact":"");
+    const chips=compact?"":chipsFor(t);
+    const badge=compact?"":'<div class="tier-row"><span class="tier '+t.tier+'">'+esc(tierLbl[t.tier]||"")+' · '+taskPts(t)+'⭐</span></div>';
+    el.innerHTML='<div class="chk'+(done?" on":"")+'"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+
+      '<div class="task-main"><div class="task-title">'+esc(tx[0])+'</div>'+
+      (!compact&&tx[1]?'<div class="task-note">'+esc(tx[1])+'</div>':'')+ badge +
+      (chips?'<div class="chips">'+chips+'</div>':'')+'</div>';
+    const chk=el.querySelector(".chk");
+    if(!done){
+      chk.addEventListener("click",()=>{
+        if(editMode)return;
+        let committed=false; const go=()=>{ if(committed)return; committed=true; commitCheck(t); };
+        playDissolve(); el.classList.add("dissolving");
+        el.addEventListener("animationend",go,{once:true}); setTimeout(go,620);
+      });
+    } else {
+      chk.addEventListener("click",()=>{ if(!editMode) commitUncheck(t); });
+    }
+    el.querySelectorAll(".chip").forEach(cc=>cc.addEventListener("click",()=>openProduct(cc.dataset.pid)));
+    if(editMode){
+      const del=document.createElement("button"); del.className="task-del"; del.textContent="✕";
+      del.addEventListener("click",e=>{ e.stopPropagation();
+        if(t.custom){ S.custom[activeZone]=customList(activeZone).filter(x=>x.id!==t.id); }
+        else { if(S.hidden.indexOf(t.id)<0)S.hidden.push(t.id); }
+        save(); renderCheck();
+      });
+      el.appendChild(del);
+    }
+    return el;
+  }
+  const list=$("taskList"); list.innerHTML="";
+  notDone.forEach(t=>list.appendChild(makeTask(t,false)));
+  if(doneT.length){
+    const div=document.createElement("div"); div.className="done-div"; div.textContent="✓ "+doneT.length;
+    list.appendChild(div);
+    doneT.forEach(t=>list.appendChild(makeTask(t,true)));
+  }
+  const hz=TASKS.filter(t=>t.zone===activeZone && S.hidden.indexOf(t.id)>=0);
+  if(editMode && hz.length){
+    const rb=document.createElement("button"); rb.className="restore-btn"; rb.textContent="↺ "+L().restore+" ("+hz.length+")";
+    rb.addEventListener("click",()=>{ S.hidden=S.hidden.filter(id=>!hz.some(t=>t.id===id)); save(); renderCheck(); });
+    list.appendChild(rb);
+  }
+  renderProgress();
+  updateTimer();
+}
+function zoneProgress(zone){
+  const ch=S.checks[shiftKey()]||{}; let total=0,done=0;
+  TASKS.filter(t=>t.zone===zone&&counts(t)).forEach(t=>{total++; if(ch[t.id])done++;});
+  return {total,done,pct: total?Math.round(done/total*100):0};
+}
+function renderProgress(){
+  const pr=zoneProgress(activeZone);
+  $("zonePct").textContent=pr.pct+"%"; $("zoneBar").style.width=pr.pct+"%";
+  let msg=""; if(pr.pct>=100)msg=L().zoneDone; else if(pr.pct>=50)msg=L().halfway;
+  $("praise").textContent=msg;
+  $("ptsChip").textContent="⭐ "+pointsEarned()+" "+L().ptsEarned;
+}
+function allDone(){ const ch=S.checks[shiftKey()]||{}; const act=getAllTasks().filter(counts);
+  return act.length>0 && act.every(t=>ch[t.id]); }
+function maybeCelebrate(){
+  const period=rotation().period;
+  if(allDone() && S.awarded.indexOf(period)<0){
+    S.awarded.push(period);
+    const pts=pointsEarned();
+    S.rooms[rotation().room].karma+=pts;
+    const tr=timerRec(); const elapsed=tr.start?(Date.now()-tr.start):0;
+    tr.start=0; // close session
+    save();
+    showCelebration(pts, elapsed);
+    renderHome();
+  }
+}
+function showCelebration(pts, elapsed){
+  const room=S.rooms[rotation().room];
+  const who=(room.person&&room.person.trim())?room.person.trim():room.name;
+  $("celebrateBig").textContent=L().greatJob+", "+who+"! 👏";
+  $("celebrateTxt").textContent=L().celeSub;
+  const over=elapsed>7200000;
+  const parts=[];
+  if(elapsed && !over) parts.push("⏱️ "+L().tookYou+" "+fmtDur(elapsed));
+  else if(over) parts.push("🌿 "+L().overTime);
+  parts.push("⭐ +"+pts+" "+L().ptsEarned);
+  $("celeStats").innerHTML=parts.map(p=>"<span>"+esc(p)+"</span>").join("");
+  $("celebrate").classList.add("on");
+  playApplause(); confettiBurst();
+}
+function confettiBurst(){
+  const wrap=$("confetti"); if(!wrap)return; wrap.innerHTML="";
+  const cols=["#D1ACD6","#CADF91","#F7F4E5","#5E6CA6","#E08A2B","#E0A33E"];
+  for(let i=0;i<50;i++){ const s=document.createElement("i");
+    s.style.left=Math.random()*100+"%"; s.style.background=cols[i%cols.length];
+    s.style.animationDelay=(Math.random()*0.4)+"s";
+    s.style.animationDuration=(1.6+Math.random()*1.4)+"s";
+    wrap.appendChild(s); }
+}
+
+/* ---------------- product sheet ---------------- */
+function openProduct(pid){
+  const p=PRODUCTS[pid]; if(!p)return;
+  let warn=""; if(p.tag==="bleach")warn=L().warnBleach; else if(p.tag==="acid")warn=L().warnAcid; else if(p.tag==="degreaser")warn=L().warnGrease;
+  $("productBody").innerHTML=
+    '<div class="grip"></div><h2>🧴 '+esc(p.name[S.lang])+'</h2>'+
+    (p.photo?'<img class="prod-photo" src="'+p.photo+'" alt="" onerror="this.style.display=\'none\'">':'')+
+    '<h3>'+L().whatDoes+'</h3><p>'+esc(p.what[S.lang])+'</p>'+
+    '<h3>'+L().whereUse+'</h3><p>'+esc(p.where[S.lang])+'</p>'+
+    (warn?'<div class="warn">'+warn+'</div>':'');
+  // re-add grip+close already in markup? productBody replaces; add close button text
+  openSheet("sheetProduct");
+  $("closeP1").textContent=L().close;
+}
+
+/* ---------------- supplies ---------------- */
+function renderSupplies(){
+  $("supTitle").textContent="🧴 "+L().supplies;
+  $("buyTxt").textContent=L().buyPeter;
+  const box=$("stockList"); box.innerHTML="";
+  S.stock.forEach((it,i)=>{
+    const row=document.createElement("div"); row.className="stock";
+    const lbl = it.status==="in"?L().inStock : it.status==="low"?L().low : L().out;
+    row.innerHTML='<span class="stock-name">'+esc(it.name)+'</span><button class="stat '+it.status+'">'+lbl+'</button>';
+    row.querySelector(".stat").addEventListener("click",()=>{
+      it.status = it.status==="in"?"low":it.status==="low"?"out":"in"; save(); renderSupplies();
+    });
+    box.appendChild(row);
+  });
+}
+function buyOnWhatsApp(){
+  const need=S.stock.filter(s=>s.status!=="in").map(s=>s.name);
+  if(!need.length)return;
+  const text=L().peterMsgBuy+need.join(", ")+" 🙏";
+  openWA(text);
+}
+function openWA(text){
+  if(!S.peter){ alert(L().peterLbl); openSheet("sheetSettings"); return; }
+  window.open("https://wa.me/"+S.peter.replace(/[^0-9]/g,"")+"?text="+encodeURIComponent(text),"_blank");
+}
+
+/* ---------------- boiler / appliances / install ---------------- */
+function renderBoiler(){
+  $("boTitle").textContent="🔥 "+L().boiler;
+  $("peterTxt").textContent=L().msgPeter;
+  $("boilerSelf").textContent=L().boilerSelf;
+  $("boilerSteps").innerHTML=L().steps.map(s=>'<li>'+s+'</li>').join("");
+}
+function renderAppliances(){
+  $("apTitle").textContent="🧺 "+L().appliances;
+  $("applBody").innerHTML=
+    '<h3>'+L().dish_h+'</h3><ul>'+L().dish.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ul>'+
+    '<h3>'+L().wash_h+'</h3><ul>'+L().wash.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ul>';
+}
+function renderInstall(){
+  $("inTitle").textContent="📲 "+L().install;
+  const block=(h,arr)=>'<h3>'+h+'</h3><ol class="steps">'+arr.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ol>';
+  $("installBody").innerHTML=block(L().install_ios_h,L().install_ios)+block(L().install_and_h,L().install_and);
+}
+
+/* ---------------- settings ---------------- */
+function renderSettings(){
+  $("setTitle").textContent=L().setTitle;
+  $("startLbl").textContent=L().startLbl;
+  $("roomsLbl").textContent=L().roomsLbl;
+  $("peterLbl").textContent=L().peterLbl;
+  $("startDate").value=S.start; $("peterPhone").value=S.peter;
+  const box=$("roomEdits"); box.innerHTML="";
+  S.rooms.forEach((rm,i)=>{
+    const row=document.createElement("div"); row.className="room-edit";
+    row.innerHTML='<input type="color" value="'+rm.color+'"><input type="text" class="rn" value="'+esc(rm.name)+'" maxlength="22">'+
+      '<input type="text" class="rp" value="'+esc(rm.person||"")+'" placeholder="'+esc(L().personLbl)+'" maxlength="22">';
+    const col=row.querySelector('input[type=color]'), name=row.querySelector('.rn'), person=row.querySelector('.rp');
+    col.addEventListener("input",e=>{rm.color=e.target.value; save(); renderHome();});
+    name.addEventListener("input",e=>{rm.name=e.target.value||("Room "+(i+1)); save(); renderHome();});
+    person.addEventListener("input",e=>{rm.person=e.target.value; save();});
+    box.appendChild(row);
+  });
+}
+
+/* ---------------- sheets / nav ---------------- */
+function openSheet(id){ $("scrim").classList.add("on"); $(id).classList.add("on"); }
+function closeSheets(){ $("scrim").classList.remove("on");
+  document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("on")); }
+function showScreen(name){
+  $("homeScreen").classList.toggle("on",name==="home");
+  $("checkScreen").classList.toggle("on",name==="check");
+  $("navHome").classList.toggle("on",name==="home");
+  $("navCheck").classList.toggle("on",name==="check");
+  window.scrollTo(0,0);
+}
+
+/* ---------------- misc ---------------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function setLang(l){ S.lang=l; save(); $("enBtn").classList.toggle("on",l==="en"); $("ptBtn").classList.toggle("on",l==="pt");
+  $("appTitle").textContent=L().appTitle; $("navHomeTxt").textContent=L().navHome; $("navCheckTxt").textContent=L().navCheck;
+  $("celeCloseTxt").textContent=L().celeClose;
+  $("addTier").innerHTML=[["easy",L().tierEasy],["basic",L().tierBasic],["medium",L().tierMedium],["hard",L().tierHard]].map(o=>'<option value="'+o[0]+'">'+esc(o[1])+'</option>').join("");
+  renderHome(); renderCheck(); renderSupplies(); renderBoiler(); renderAppliances(); renderInstall(); renderSettings(); }
+
+/* ---------------- init ---------------- */
+load();
+setLang(S.lang);
+setInterval(updateTimer,1000);
+// nav
+$("navHome").addEventListener("click",()=>showScreen("home"));
+$("navCheck").addEventListener("click",()=>{showScreen("check"); renderCheck();});
+$("enBtn").addEventListener("click",()=>setLang("en"));
+$("ptBtn").addEventListener("click",()=>setLang("pt"));
+// tabs
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  activeZone=t.dataset.zone; document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t)); renderCheck();
+}));
+// duty name edit
+$("dutyName").addEventListener("input",e=>{ S.rooms[rotation().room].name=e.target.value||("Room "+(rotation().room+1)); save(); });
+$("dutyName").addEventListener("blur",()=>{ renderHome(); });
+// home buttons
+$("boilerBtn").addEventListener("click",()=>{renderBoiler(); openSheet("sheetBoiler");});
+$("supBtn").addEventListener("click",()=>{renderSupplies(); openSheet("sheetSupplies");});
+$("applBtn").addEventListener("click",()=>{renderAppliances(); openSheet("sheetAppliances");});
+$("installBtn").addEventListener("click",()=>{renderInstall(); openSheet("sheetInstall");});
+$("gearBtn").addEventListener("click",()=>{renderSettings(); openSheet("sheetSettings");});
+$("peterBtn").addEventListener("click",()=>openWA(L().peterMsgBoiler));
+$("buyBtn").addEventListener("click",buyOnWhatsApp);
+$("resetBtn").addEventListener("click",()=>{ const k=shiftKey(); S.checks[k]={}; if(S.timer)S.timer[k]={start:0}; const p=rotation().period; S.awarded=S.awarded.filter(x=>x!==p); save(); renderCheck(); });
+$("editBtn").addEventListener("click",()=>{ editMode=!editMode; renderCheck(); });
+$("addBtn").addEventListener("click",()=>{ const v=$("addInput").value.trim(); if(!v)return;
+  const tier=$("addTier").value||"basic"; if(!S.custom[activeZone])S.custom[activeZone]=[];
+  S.custom[activeZone].push({id:"cust_"+Date.now(),zone:activeZone,type:"required",tier:tier,custom:true,p:[],en:[v,""],pt:[v,""]});
+  $("addInput").value=""; save(); renderCheck(); });
+// settings inputs
+$("startDate").addEventListener("change",e=>{ S.start=e.target.value||todayISO(); save(); renderHome(); renderCheck(); });
+$("peterPhone").addEventListener("input",e=>{ S.peter=e.target.value.trim(); save(); });
+// scrim / close
+$("scrim").addEventListener("click",closeSheets);
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeSheets));
+// celebration
+$("celebrateClose").addEventListener("click",()=>$("celebrate").classList.remove("on"));
+</script>
+</body>
+</html>

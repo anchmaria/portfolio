@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Formatter - Minimal Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            position: relative;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            padding: 40px 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 10% 15%, rgba(188, 223, 255, 0.85), transparent 20%),
+                radial-gradient(circle at 80% 8%, rgba(220, 250, 255, 0.75), transparent 18%),
+                radial-gradient(circle at 55% 75%, rgba(215, 233, 237, 0.78), transparent 24%);
+            background-size: 220% 220%;
+            filter: blur(95px);
+            opacity: 0.95;
+            animation: auroraGlow 24s ease-in-out infinite;
+        }
+
+        @keyframes auroraGlow {
+            0% {
+                background-position: 12% 18%, 85% 0%, 55% 82%;
+            }
+            25% {
+                background-position: 18% 12%, 90% 8%, 45% 76%;
+            }
+            50% {
+                background-position: 22% 8%, 70% 15%, 60% 85%;
+            }
+            75% {
+                background-position: 15% 20%, 80% 10%, 52% 78%;
+            }
+            100% {
+                background-position: 12% 18%, 85% 0%, 55% 82%;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        
+
+        h1 {
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .editor-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .editor-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 16px;
+            border: 1px solid #e0e0e;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            background-color: #fff;
+            color: #333;
+        }
+
+        #output {
+            animation: none;
+        }
+
+        .output-appear {
+            animation: outputFadeIn 0.2s ease-out;
+        }
+
+        @keyframes outputFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .stats {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .button-group {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            border-color: #333;
+            background-color: #f5f5f5;
+        }
+
+        button.primary {
+            background-color: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        button.primary:hover {
+            background-color: #555;
+            border-color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .editor-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Formatter</h1>
+        <div class="editor-wrapper">
+            <div class="editor-section">
+                <div class="section-title">Исходный текст</div>
+                <textarea id="input" placeholder="Paste your messy text here...">  Это   пример  текста  с  «фигурными кавычками».
+
+
+Много   пустых   строк.</textarea>
+                <div class="stats" id="inputStats">Слов: 0</div>
+            </div>
+            <div class="editor-section">
+                <div class="section-title">Очищенный результат</div>
+                <textarea id="output" placeholder="Результат форматирования..." readonly></textarea>
+                <div class="stats" id="outputStats">Слов: 0</div>
+                <div class="button-group">
+                    <button class="primary" onclick="copyToClipboard()">Копировать в буфер обмена</button>
+                    <button onclick="exportToFile()">Экспортировать</button>
+                    <button onclick="saveText()">Сохранить</button>
+                    <button onclick="clearText()">Очистить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputTextarea = document.getElementById('input');
+        const outputTextarea = document.getElementById('output');
+
+        function formatText(text) {
+            // Заменять фигурные кавычки на прямые
+            text = text.replace(/[""]/g, '"');
+            text = text.replace(/['']/g, "'");
+            
+            // Удалять двойные пробелы и заменять на одинарные
+            text = text.replace(/  +/g, ' ');
+            
+            // Удалять пробелы в начале и конце каждой строки
+            text = text.split('\n').map(line => line.trim()).join('\n');
+            
+            // Сводить несколько пустых строк к одной
+            text = text.replace(/\n\n\n+/g, '\n\n');
+            
+            return text.trim();
+        }
+
+        function countWords(text) {
+            return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function updateOutput() {
+            const input = inputTextarea.value;
+            const output = formatText(input);
+            outputTextarea.value = output;
+            outputTextarea.classList.remove('output-appear');
+            void outputTextarea.offsetWidth;
+            outputTextarea.classList.add('output-appear');
+            
+            document.getElementById('inputStats').textContent = `Слов: ${countWords(input)}`;
+            document.getElementById('outputStats').textContent = `Слов: ${countWords(output)}`;
+        }
+
+        function copyToClipboard() {
+            outputTextarea.select();
+            document.execCommand('copy');
+            alert('Текст скопирован в буфер обмена!');
+        }
+
+        function exportToFile() {
+            const text = outputTextarea.value;
+            if (!text.trim()) {
+                alert('Нет текста для экспорта!');
+                return;
+            }
+            
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', 'formatted_text.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function saveText() {
+            const text = inputTextarea.value;
+            localStorage.setItem('formattedText', text);
+            alert('Текст сохранен!');
+        }
+
+        function loadSavedText() {
+            const saved = localStorage.getItem('formattedText');
+            if (saved) {
+                inputTextarea.value = saved;
+                updateOutput();
+            }
+        }
+
+        function clearText() {
+            inputTextarea.value = '';
+            outputTextarea.value = '';
+            updateOutput();
+        }
+
+        inputTextarea.addEventListener('input', updateOutput);
+        loadSavedText();
+        updateOutput();
+    </script>
+</body>
+</html>

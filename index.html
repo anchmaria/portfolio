@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maria Anch — Interactive Apps & Projects</title>
+<meta name="description" content="All interactive applications, websites and digital projects by Maria Anch — what was built, what to look at, and a live link for each.">
+<meta name="theme-color" content="#7c3aed">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --violet:#7c3aed;--violet-deep:#6d28d9;--violet-tint:#f5f3ff;
+  --ink:#1c1c28;--ink-body:#54546a;--ink-muted:#7c7c91;--ink-faint:#9a98a6;
+  --surface:#fff;--page:#fbfbfd;--line:#e9e9ef;
+  --green:#10b981;--orange:#f59e0b;--blue:#3b82f6;--pink:#ec4899;
+  --sans:"Manrope",system-ui,sans-serif;--serif:"Noto Serif Display",Georgia,serif;
+  --r-xl:22px;--r-pill:999px;
+  --shadow:0 1px 2px rgba(20,20,40,.04),0 8px 24px -12px rgba(20,20,50,.12);
+  --shadow-pop:0 2px 4px rgba(60,30,120,.06),0 20px 48px -16px rgba(95,45,200,.26);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);color:var(--ink);
+  background:radial-gradient(60% 50% at 50% 0%,rgba(124,58,237,.08) 0%,rgba(124,58,237,0) 60%),var(--page);
+  -webkit-font-smoothing:antialiased;line-height:1.5;
+}
+.wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible{outline:2px solid var(--violet);outline-offset:3px;border-radius:6px}
+
+header{padding:20px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(251,251,253,.85);backdrop-filter:blur(8px);z-index:50}
+.head-row{display:flex;align-items:center;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--violet);box-shadow:0 0 0 5px rgba(124,58,237,.16)}
+.nav-links{margin-left:auto;display:flex;gap:20px;font-size:14px;font-weight:600}
+.nav-links a{color:var(--ink-body);transition:color .18s var(--ease)}
+.nav-links a:hover{color:var(--violet)}
+
+.hero{padding:56px 0 8px;max-width:780px}
+h1{font-size:clamp(36px,6vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-bottom:18px}
+h1 .serif{font-family:var(--serif);font-style:italic;color:var(--violet-deep)}
+.hero-desc{font-size:17px;color:var(--ink-body);max-width:600px;line-height:1.6}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin:36px 0 12px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow)}
+.filter-btn{
+  padding:8px 15px;border:1px solid var(--line);background:var(--surface);
+  border-radius:var(--r-pill);font-weight:600;font-size:13px;cursor:pointer;
+  color:var(--ink-body);font-family:inherit;transition:all .18s var(--ease);
+}
+.filter-btn.active{background:var(--violet);color:#fff;border-color:var(--violet)}
+.filter-btn:not(.active):hover{border-color:var(--violet);color:var(--violet)}
+
+.section-title{font-size:22px;font-weight:800;margin:48px 0 22px;padding-bottom:10px;border-bottom:2px solid var(--line)}
+.section-title.hidden{display:none}
+
+.apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:22px}
+
+.app-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:26px;display:flex;flex-direction:column;gap:12px;
+  box-shadow:var(--shadow);transition:box-shadow .25s var(--ease),transform .25s var(--ease);
+}
+.app-card:hover{box-shadow:var(--shadow-pop);transform:translateY(-4px)}
+.app-card.hidden{display:none}
+
+.app-badge{
+  display:inline-flex;width:fit-content;font-size:11px;letter-spacing:.06em;
+  color:#fff;padding:5px 11px;border-radius:var(--r-pill);
+  text-transform:uppercase;font-weight:700;
+}
+.badge-live{background:var(--green)}
+.badge-wip{background:var(--orange)}
+.badge-coming{background:var(--blue)}
+.badge-hobby{background:var(--pink)}
+
+.app-card h3{font-size:20px;font-weight:800;line-height:1.15}
+.app-desc{font-size:14px;color:var(--ink-body);line-height:1.6}
+.app-highlight{
+  font-size:13px;color:var(--ink-body);line-height:1.55;
+  padding:12px 14px;background:var(--violet-tint);border-radius:10px;
+  border-left:3px solid var(--violet);
+}
+.app-highlight strong{color:var(--violet-deep)}
+
+.app-features{list-style:none;margin:4px 0;padding:0}
+.app-features li{font-size:13px;color:var(--ink-body);padding:5px 0 5px 20px;position:relative}
+.app-features li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700}
+
+.app-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:14px}
+.link-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  color:var(--violet);font-weight:700;font-size:13px;padding:9px 14px;
+  background:var(--violet-tint);border:1px solid transparent;
+  border-radius:10px;transition:all .18s var(--ease);
+}
+.link-btn:hover{background:var(--violet);color:#fff}
+.link-btn.muted{background:transparent;border-color:var(--line);color:var(--ink-muted);cursor:default}
+.link-btn.muted:hover{background:transparent;color:var(--ink-muted)}
+
+footer{border-top:1px solid var(--line);padding:40px 0;margin-top:64px;text-align:center;font-size:13px;color:var(--ink-faint)}
+footer a{color:var(--violet);font-weight:600}
+
+@media(max-width:768px){
+  .apps-grid{grid-template-columns:1fr}
+  .nav-links{gap:14px;font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  .app-card,.link-btn,.filter-btn{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="head-row">
+    <a class="brand" href="index.html"><span class="dot"></span>Maria Anch</a>
+    <nav class="nav-links">
+      <a href="index.html">Projects</a>
+      <a href="cv.html">CV</a>
+    </nav>
+  </div>
+</header>
+
+<section class="wrap hero">
+  <h1>Apps &amp; <span class="serif">projects.</span></h1>
+  <p class="hero-desc">Every project I've built, with the one thing worth looking at in each. All links open the real, working version — nothing here is a mockup.</p>
+</section>
+
+<div class="wrap">
+  <div class="filters" role="group" aria-label="Filter projects">
+    <button class="filter-btn active" data-filter="all">All projects</button>
+    <button class="filter-btn" data-filter="live">Live</button>
+    <button class="filter-btn" data-filter="wip">In progress</button>
+    <button class="filter-btn" data-filter="coming">Coming soon</button>
+    <button class="filter-btn" data-filter="hobby">Personal</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <h2 class="section-title" data-section="live">Live projects</h2>
+  <div class="apps-grid">
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>Wander With Suzy</h3>
+      <p class="app-desc">A travel blogger's website — stories, destinations and an illustrated journey across the world, in two languages.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> the interactive world map. Every place visited is a live pin — click one and it opens the story written from there. It's the spine of the whole site, not a decoration.
+      </div>
+      <ul class="app-features">
+        <li>Interactive Leaflet map with story pins</li>
+        <li>Full EN / RU switch across all pages</li>
+        <li>Blog index, story pages and about section</li>
+      </ul>
+      <div class="app-links">
+        <a href="suzy-travel-blog/" class="link-btn" target="_blank" rel="noopener">Open site →</a>
+        <a href="suzy-travel-blog/blog.html" class="link-btn" target="_blank" rel="noopener">See the blog</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>Charlotte Doyle Therapy</h3>
+      <p class="app-desc">A therapist's practice website: services, approach, credentials and a clear path to booking a first session.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> the trust-building structure. A calm, uncluttered layout that answers a nervous first-time client's questions in order — what happens in a session, who you are, how to start.
+      </div>
+      <ul class="app-features">
+        <li>Service pages written for a sensitive audience</li>
+        <li>Credentials and testimonials placed where they reassure</li>
+        <li>Single clear booking path from every page</li>
+      </ul>
+      <div class="app-links">
+        <a href="https://charlotte-doyle-therapy.netlify.app" class="link-btn" target="_blank" rel="noopener">Open site →</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>Devi Calendar · Adi 2026</h3>
+      <p class="app-desc">A daily spiritual calendar: the deity of the day, mantras, and the exact local time windows for practice.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> the time windows are computed, not copied. Sunrise, sunset and the auspicious periods are calculated live from your coordinates with an astronomy engine — so the numbers are right anywhere in the world.
+      </div>
+      <ul class="app-features">
+        <li>Real astronomical calculations per location</li>
+        <li>Three languages (RU / EN / RO)</li>
+        <li>Auto light/dark theme that follows the actual sunset</li>
+        <li>Installs to the home screen like an app</li>
+      </ul>
+      <div class="app-links">
+        <a href="adi-calendar/" class="link-btn" target="_blank" rel="noopener">Open calendar →</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>The House Board</h3>
+      <p class="app-desc">A household management board — chores, routines and who does what, in one shared visual space.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> the board itself. Everything is drag-and-drop, and the state survives a reload — it behaves like a real app, not a static page.
+      </div>
+      <ul class="app-features">
+        <li>Drag-and-drop task board</li>
+        <li>State saved between visits</li>
+        <li>Built for shared family use</li>
+      </ul>
+      <div class="app-links">
+        <a href="house-board/" class="link-btn" target="_blank" rel="noopener">Open app →</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>Tonshu — Investor Pitch</h3>
+      <p class="app-desc">A product idea packaged for a funding conversation: problem, market, solution and roadmap as one interactive deck. In Russian.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> it's a deck that lives in the browser. You send a link instead of a heavy attachment, and it opens correctly on a phone in a meeting.
+      </div>
+      <ul class="app-features">
+        <li>Slide-by-slide interactive navigation</li>
+        <li>Investor-ready narrative structure</li>
+        <li>Shareable as a single link</li>
+      </ul>
+      <div class="app-links">
+        <a href="tonshu-pitch/" class="link-btn" target="_blank" rel="noopener">Open deck →</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>Text Formatter</h3>
+      <p class="app-desc">Cleans up messy text in one click — straightens quotes, kills double spaces and stray blank lines.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> two complete themes of the same tool — a warm light version and a dark code-editor version — showing how far one interface can be restyled without touching its logic.
+      </div>
+      <ul class="app-features">
+        <li>Instant one-click cleanup</li>
+        <li>Two fully designed themes</li>
+        <li>Copy result to clipboard</li>
+      </ul>
+      <div class="app-links">
+        <a href="text-formatter/" class="link-btn" target="_blank" rel="noopener">Light version →</a>
+        <a href="text-formatter/dark.html" class="link-btn" target="_blank" rel="noopener">Dark version</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="live">
+      <span class="app-badge badge-live">Live</span>
+      <h3>Brand Motion Set</h3>
+      <p class="app-desc">Three ambient brand animations built on one palette — for hero sections, video intros and social content.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> there are no libraries and no video files. All three are pure CSS, so they weigh almost nothing and stay sharp at any screen size.
+      </div>
+      <ul class="app-features">
+        <li>Aurora, floating shapes and breathing loops</li>
+        <li>Zero dependencies, zero video weight</li>
+        <li>Respects reduced-motion settings</li>
+      </ul>
+      <div class="app-links">
+        <a href="motion/aurora-hero.html" class="link-btn" target="_blank" rel="noopener">Aurora →</a>
+        <a href="motion/floating-shapes.html" class="link-btn" target="_blank" rel="noopener">Shapes</a>
+        <a href="motion/breathing.html" class="link-btn" target="_blank" rel="noopener">Breathing</a>
+      </div>
+    </article>
+
+  </div>
+
+  <h2 class="section-title" data-section="wip">In progress</h2>
+  <div class="apps-grid">
+
+    <article class="app-card" data-category="wip">
+      <span class="app-badge badge-wip">In progress</span>
+      <h3>CRM Pipeline — Leads</h3>
+      <p class="app-desc">A lead-management interface for a small business: pipeline stages, lead cards and filters.</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> the pipeline view — how a lead moves from first contact to closed, and how much of a sales process can be understood at a single glance.
+      </div>
+      <ul class="app-features">
+        <li>Visual pipeline stages</li>
+        <li>Lead cards with detail view</li>
+        <li>Search and filtering</li>
+      </ul>
+      <div class="app-links">
+        <a href="crm/" class="link-btn" target="_blank" rel="noopener">Open prototype →</a>
+      </div>
+    </article>
+
+    <article class="app-card" data-category="wip">
+      <span class="app-badge badge-wip">In progress</span>
+      <h3>Tone Analyser</h3>
+      <p class="app-desc">Paste any text and get professional feedback on how it reads. Bilingual interface (EN / RU).</p>
+      <div class="app-highlight">
+        <strong>What to look at:</strong> the interface is finished and fully bilingual — the AI backend is the part still being connected, so treat this as a design and interaction demo.
+      </div>
+      <ul class="app-features">
+        <li>Complete bilingual UI</li>
+        <li>Designed around a single input → feedback flow</li>
+        <li>AI analysis backend in development</li>
+      </ul>
+      <div class="app-links">
+        <a href="tone-analyser/" class="link-btn" target="_blank" rel="noopener">Open interface →</a>
+      </div>
+    </article>
+
+  </div>
+
+  <h2 class="section-title" data-section="coming">Coming soon</h2>
+  <div class="apps-grid">
+
+    <article class="app-card" data-category="coming">
+      <span class="app-badge badge-coming">In development</span>
+      <h3>Ayurveda Guide</h3>
+      <p class="app-desc">A personal Ayurvedic companion: constitution assessment and daily guidance that changes with the season.</p>
+      <div class="app-highlight">
+        <strong>The idea:</strong> generic wellness advice ignores who you are. This starts from your dosha and the time of year, and narrows down to what to actually do today.
+      </div>
+      <ul class="app-features">
+        <li>Dosha assessment</li>
+        <li>Daily and seasonal recommendations</li>
+        <li>Herb and nutrition reference</li>
+      </ul>
+      <div class="app-links"><span class="link-btn muted">Launching 2026</span></div>
+    </article>
+
+    <article class="app-card" data-category="coming">
+      <span class="app-badge badge-coming">In development</span>
+      <h3>Cooking by Cycle</h3>
+      <p class="app-desc">Recipes and nutrition matched to Ayurvedic principles and to the phase of your own cycle.</p>
+      <div class="app-highlight">
+        <strong>The idea:</strong> the same meal is not right in every week of the month. This pairs cycle phase with Ayurvedic food logic and suggests what to cook now.
+      </div>
+      <ul class="app-features">
+        <li>Cycle-aware recipe suggestions</li>
+        <li>Ayurvedic ingredient logic</li>
+        <li>Practical shopping and prep lists</li>
+      </ul>
+      <div class="app-links"><span class="link-btn muted">Launching 2026</span></div>
+    </article>
+
+    <article class="app-card" data-category="coming">
+      <span class="app-badge badge-coming">In development</span>
+      <h3>Qi Men Dun Jia Chatbot</h3>
+      <p class="app-desc">A Telegram assistant for Chinese metaphysics: chart readings, choosing an auspicious time, and activations in space for luck.</p>
+      <div class="app-highlight">
+        <strong>The idea:</strong> these calculations normally take a specialist and a paper almanac. In chat you ask "when should I sign this?" and get the time window and the direction to face.
+      </div>
+      <ul class="app-features">
+        <li>Chart calculation from birth data</li>
+        <li>Auspicious date and time selection</li>
+        <li>Directional activations for a given goal</li>
+        <li>Runs entirely inside Telegram</li>
+      </ul>
+      <div class="app-links"><span class="link-btn muted">Launching 2026</span></div>
+    </article>
+
+  </div>
+
+  <h2 class="section-title" data-section="hobby">Personal projects</h2>
+  <div class="apps-grid">
+
+    <article class="app-card" data-category="hobby">
+      <span class="app-badge badge-hobby">Personal</span>
+      <h3>BaZi Calendar</h3>
+      <p class="app-desc">A Chinese metaphysics calendar built for my own practice — Four Pillars charts and daily energy readings.</p>
+      <div class="app-highlight">
+        <strong>Why it's here:</strong> a hobby project, but a technically honest one — the whole BaZi calendar logic runs offline in the browser, with no server and no API behind it.
+      </div>
+      <ul class="app-features">
+        <li>Four Pillars chart calculation</li>
+        <li>Daily pillar and element readings</li>
+        <li>Works fully offline</li>
+      </ul>
+      <div class="app-links">
+        <a href="bazi-en.html" class="link-btn" target="_blank" rel="noopener">Open calendar →</a>
+      </div>
+    </article>
+
+  </div>
+
+</main>
+
+<footer class="wrap">
+  <p>Maria Anch · Web designer &amp; developer, building with AI</p>
+  <p style="margin-top:10px;">
+    <a href="cv.html">CV</a> · <a href="https://www.linkedin.com/in/maria-anch-a7b798197/" target="_blank" rel="noopener">LinkedIn</a>
+  </p>
+</footer>
+
+<script>
+const buttons = document.querySelectorAll('.filter-btn');
+const cards = document.querySelectorAll('.app-card');
+const titles = document.querySelectorAll('.section-title');
+
+buttons.forEach(btn => btn.addEventListener('click', () => {
+  const filter = btn.dataset.filter;
+  buttons.forEach(b => b.classList.toggle('active', b === btn));
+  cards.forEach(card => {
+    card.classList.toggle('hidden', filter !== 'all' && card.dataset.category !== filter);
+  });
+  titles.forEach(title => {
+    title.classList.toggle('hidden', filter !== 'all' && title.dataset.section !== filter);
+  });
+}));
+</script>
+
+</body>
+</html>

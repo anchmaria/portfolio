@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Wander With Suzy</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --coral: #FF6B6B;
+    --coral-dark: #e85555;
+    --forest: #2D6A4F;
+    --ink: #2b2420;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  a { text-decoration: none; color: inherit; }
+
+  img { max-width: 100%; display: block; }
+
+  /* ---------- Nav ---------- */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 248, 240, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(45, 106, 79, 0.12);
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--forest);
+  }
+
+  .nav-logo span { color: var(--coral); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--ink);
+    position: relative;
+    padding-bottom: 4px;
+    transition: color 0.2s ease;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background: var(--coral);
+    transition: width 0.25s ease;
+  }
+
+  .nav-links a:hover { color: var(--coral); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-links a.active { color: var(--coral); }
+  .nav-links a.active::after { width: 100%; }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  .nav-toggle span {
+    width: 24px;
+    height: 2px;
+    background: var(--forest);
+    border-radius: 2px;
+  }
+
+  /* ---------- Language switcher ---------- */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .lang-switch {
+    display: flex;
+    border: 1.5px solid var(--forest);
+    border-radius: 999px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .lang-btn {
+    border: none;
+    background: transparent;
+    color: var(--forest);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .lang-btn.active { background: var(--forest); color: #fff; }
+  .lang-btn:not(.active):hover { background: rgba(45, 106, 79, 0.08); }
+
+  @media (max-width: 480px) {
+    .nav-right { gap: 10px; }
+    .lang-btn { padding: 5px 9px; font-size: 0.68rem; }
+    .nav-logo { font-size: 1.1rem; }
+  }
+
+  @media (max-width: 720px) {
+    .nav-toggle { display: flex; }
+
+    .nav-links {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--cream);
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      border-bottom: 1px solid rgba(45, 106, 79, 0.12);
+    }
+
+    .nav-links.open { max-height: 320px; }
+
+    .nav-links li { width: 100%; text-align: center; }
+
+    .nav-links a { display: block; padding: 16px; }
+  }
+
+  /* ---------- Page header ---------- */
+  .page-header {
+    text-align: center;
+    padding: 90px 24px 60px;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255, 107, 107, 0.10) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(45, 106, 79, 0.10) 0, transparent 45%);
+  }
+
+  .page-header .kicker {
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--coral);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+    font-weight: 700;
+    color: var(--forest);
+    letter-spacing: -0.5px;
+  }
+
+  .page-header p {
+    margin: 16px auto 0;
+    max-width: 500px;
+    color: #6b5f54;
+    font-weight: 300;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- Blog grid ---------- */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 24px 90px;
+  }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  @media (max-width: 720px) {
+    .blog-grid { grid-template-columns: 1fr; }
+  }
+
+  .blog-card {
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(45, 34, 20, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 22px 44px rgba(45, 34, 20, 0.16);
+  }
+
+  .blog-card .thumb {
+    height: 220px;
+    overflow: hidden;
+  }
+
+  .blog-card .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease;
+  }
+
+  .blog-card:hover .thumb img { transform: scale(1.08); }
+
+  .blog-card-body { padding: 24px 26px 28px; }
+
+  .blog-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--forest);
+    background: rgba(45, 106, 79, 0.1);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+
+  .blog-date {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  .blog-card h2 {
+    margin-top: 8px;
+    font-size: 1.35rem;
+    color: var(--forest);
+    line-height: 1.25;
+  }
+
+  .blog-card p.excerpt {
+    margin-top: 12px;
+    font-size: 0.94rem;
+    color: #6b5f54;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .blog-card .read-more {
+    display: inline-block;
+    margin-top: 16px;
+    color: var(--coral);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+  }
+
+  .blog-card .read-more:hover {
+    text-decoration: underline;
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    text-align: center;
+    padding: 48px 24px 36px;
+    background: var(--cream);
+    border-top: 2px solid var(--forest);
+  }
+
+  .footer-social {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .footer-social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--coral);
+    border: 1.5px solid rgba(255, 107, 107, 0.3);
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .footer-social svg { width: 18px; height: 18px; }
+
+  .footer-social a:hover {
+    background: var(--coral);
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(255, 107, 107, 0.35);
+  }
+
+  .footer-tagline {
+    color: #8a7c6d;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  .footer-tagline .heart { color: var(--coral); }
+
+  .footer-copy {
+    color: #8a7c6d;
+    font-size: 0.85rem;
+  }
+
+  .back-to-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--forest);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .back-to-top:hover {
+    color: var(--coral);
+    transform: translateY(-2px);
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Wander With <span>Suzy</span></a>
+    <div class="nav-right">
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang="en" type="button">EN</button>
+        <button class="lang-btn" data-lang="ru" type="button">RU</button>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" data-en="Home" data-ru="Главная">Home</a></li>
+        <li><a href="blog.html" class="active" data-en="Blog" data-ru="Блог">Blog</a></li>
+        <li><a href="about.html" data-en="About" data-ru="Обо мне">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<header class="page-header">
+  <span class="kicker reveal" data-en="The Journal" data-ru="Дневник">The Journal</span>
+  <h1 class="display reveal" data-en="Stories From the Road" data-ru="Истории с дороги">Stories From the Road</h1>
+  <p class="reveal" data-en="Notes, photos, and honest takes from every corner of the world." data-ru="Заметки, фото и честные впечатления со всех уголков мира.">Notes, photos, and honest takes from every corner of the world.</p>
+</header>
+
+<section class="section">
+  <div class="blog-grid">
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-1/600/400" alt="Lisbon rooftops at sunset"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Portugal" data-ru="Португалия">Portugal</span>
+        <div class="blog-date" data-en="June 14, 2026" data-ru="14 июня 2026">June 14, 2026</div>
+        <h2 data-en="48 Hours in Lisbon: A Love Letter" data-ru="48 часов в Лиссабоне: любовное письмо">48 Hours in Lisbon: A Love Letter</h2>
+        <p class="excerpt" data-en="How one weekend in Portugal's capital turned into a home base and a whole new chapter of my life." data-ru="Как один уик-энд в столице Португалии превратился в дом и целую новую главу моей жизни.">How one weekend in Portugal's capital turned into a home base and a whole new chapter of my life.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-2/600/400" alt="Bangkok street food stall"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Thailand" data-ru="Таиланд">Thailand</span>
+        <div class="blog-date" data-en="May 29, 2026" data-ru="29 мая 2026">May 29, 2026</div>
+        <h2 data-en="The Street Food Crawl That Broke Me (Happily)" data-ru="Уличная еда, которая меня доконала (в хорошем смысле)">The Street Food Crawl That Broke Me (Happily)</h2>
+        <p class="excerpt" data-en="Six stalls, four neighborhoods, one very full stomach — my Bangkok food map for first-timers." data-ru="Шесть лотков, четыре района, один очень сытый желудок — моя гастрокарта Бангкока для новичков.">Six stalls, four neighborhoods, one very full stomach — my Bangkok food map for first-timers.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-3/600/400" alt="Bali rice terraces at dawn"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Indonesia" data-ru="Индонезия">Indonesia</span>
+        <div class="blog-date" data-en="May 10, 2026" data-ru="10 мая 2026">May 10, 2026</div>
+        <h2 data-en="Chasing Sunrise Over the Rice Terraces" data-ru="В погоне за рассветом над рисовыми террасами">Chasing Sunrise Over the Rice Terraces</h2>
+        <p class="excerpt" data-en="Waking up at 4:30am in Bali was not on my vacation bingo card. I'd do it again tomorrow." data-ru="Проснуться в 4:30 утра на Бали — такого пункта не было в моём отпускном списке. Я бы повторила это завтра же.">Waking up at 4:30am in Bali was not on my vacation bingo card. I'd do it again tomorrow.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-4/600/400" alt="Tokyo street at night with neon signs"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Japan" data-ru="Япония">Japan</span>
+        <div class="blog-date" data-en="April 22, 2026" data-ru="22 апреля 2026">April 22, 2026</div>
+        <h2 data-en="Tokyo Taught Me to Slow Down (Ironically)" data-ru="Токио научил меня замедляться (вот ирония)">Tokyo Taught Me to Slow Down (Ironically)</h2>
+        <p class="excerpt" data-en="Between the bullet trains and the neon chaos, I found the quietest week of my year in a tiny ramen shop." data-ru="Среди скоростных поездов и неонового хаоса я нашла самую тихую неделю года в крошечной рамен-лавке.">Between the bullet trains and the neon chaos, I found the quietest week of my year in a tiny ramen shop.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-5/600/400" alt="Marrakech souk with colorful textiles"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Morocco" data-ru="Марокко">Morocco</span>
+        <div class="blog-date" data-en="April 3, 2026" data-ru="3 апреля 2026">April 3, 2026</div>
+        <h2 data-en="Getting Gloriously Lost in the Marrakech Souks" data-ru="Как я великолепно заблудилась на базарах Марракеша">Getting Gloriously Lost in the Marrakech Souks</h2>
+        <p class="excerpt" data-en="No map, no plan, and the best afternoon of my trip — here's why you should let the medina win." data-ru="Без карты, без плана — и лучший день поездки. Вот почему стоит довериться медине.">No map, no plan, and the best afternoon of my trip — here's why you should let the medina win.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-6/600/400" alt="Amalfi Coast cliffside road and sea"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Italy" data-ru="Италия">Italy</span>
+        <div class="blog-date" data-en="March 18, 2026" data-ru="18 марта 2026">March 18, 2026</div>
+        <h2 data-en="Driving the Amalfi Coast Without Losing My Nerve" data-ru="Как я проехала по Амальфитанскому побережью и не сошла с ума">Driving the Amalfi Coast Without Losing My Nerve</h2>
+        <p class="excerpt" data-en="Hairpin turns, lemon groves, and the bluest water I've ever seen — my honest guide to the coastal drive." data-ru="Крутые повороты, лимонные рощи и самая синяя вода, которую я видела — мой честный гид по прибрежной дороге.">Hairpin turns, lemon groves, and the bluest water I've ever seen — my honest guide to the coastal drive.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-7/600/400" alt="Hanoi old quarter with motorbikes"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Vietnam" data-ru="Вьетнам">Vietnam</span>
+        <div class="blog-date" data-en="March 2, 2026" data-ru="2 марта 2026">March 2, 2026</div>
+        <h2 data-en="Surviving (and Loving) Hanoi Traffic on Foot" data-ru="Как выжить (и влюбиться) в ханойское движение пешком">Surviving (and Loving) Hanoi Traffic on Foot</h2>
+        <p class="excerpt" data-en="A crash course in crossing the street, finding the best pho, and falling for the Old Quarter's chaos." data-ru="Экспресс-курс по переходу улиц, поиску лучшего фо и влюблённости в хаос Старого квартала.">A crash course in crossing the street, finding the best pho, and falling for the Old Quarter's chaos.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-8/600/400" alt="Santorini blue domes at sunset"></div>
+      <div class="blog-card-body">
+        <span class="blog-tag" data-en="Greece" data-ru="Греция">Greece</span>
+        <div class="blog-date" data-en="February 12, 2026" data-ru="12 февраля 2026">February 12, 2026</div>
+        <h2 data-en="Why Santorini Sunsets Live Up to the Hype" data-ru="Почему закаты Санторини оправдывают весь этот хайп">Why Santorini Sunsets Live Up to the Hype</h2>
+        <p class="excerpt" data-en="I went in skeptical of the postcard-perfect reputation. I left planning my next trip back already." data-ru="Я ехала туда скептично настроенной к открыточной репутации острова. А уехала уже планируя вернуться.">I went in skeptical of the postcard-perfect reputation. I left planning my next trip back already.</p>
+        <a href="#" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-social">
+    <a href="#" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+    <a href="#" aria-label="YouTube">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="5" width="20" height="14" rx="4"/>
+        <path d="M10 9l6 3-6 3V9z" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+    <a href="#" aria-label="Twitter / X">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4l16 16M20 4L4 20"/>
+      </svg>
+    </a>
+  </div>
+  <p class="footer-tagline" data-en='Made with <span class="heart">♥</span> and a lot of jet lag' data-ru='Сделано с <span class="heart">♥</span> и джетлагом'>Made with <span class="heart">♥</span> and a lot of jet lag</p>
+  <p class="footer-copy">© 2025 Wander With Suzy</p>
+  <a href="#" class="back-to-top" data-en="↑ Back to top" data-ru="↑ Наверх">↑ Back to top</a>
+</footer>
+
+<script>
+  // ---- Language switcher (EN/RU) ----
+  (function () {
+    const STORAGE_KEY = 'suzyLang';
+
+    function applyLang(lang) {
+      document.documentElement.setAttribute('lang', lang);
+      document.querySelectorAll('[data-en]').forEach(el => {
+        const val = lang === 'ru' ? el.dataset.ru : el.dataset.en;
+        if (val !== undefined) el.innerHTML = val;
+      });
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+      localStorage.setItem(STORAGE_KEY, lang);
+    }
+
+    const savedLang = localStorage.getItem(STORAGE_KEY) || 'ru';
+    applyLang(savedLang);
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+    });
+  })();
+
+  // ---- Scroll-triggered fade-up animations ----
+  (function () {
+    const revealEls = document.querySelectorAll('.reveal');
+
+    // Stagger siblings within the same container so groups cascade in one after another
+    const groups = new Map();
+    revealEls.forEach(el => {
+      const parent = el.parentElement;
+      if (!groups.has(parent)) groups.set(parent, []);
+      groups.get(parent).push(el);
+    });
+    groups.forEach(siblings => {
+      siblings.forEach((el, i) => {
+        el.style.transitionDelay = `${i * 110}ms`;
+      });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+    revealEls.forEach(el => observer.observe(el));
+  })();
+
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => navLinks.classList.remove('open'));
+  });
+</script>
+
+</body>
+</html>

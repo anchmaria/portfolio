@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wander With Suzy — Stories From Every Corner of the World</title>
+
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" integrity="sha256-V2sIX92Uh6ZaGSFTKMHghsB85b9toJtmazgG09AI2uk=" crossorigin="" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" integrity="sha256-vpYzxNhw4m+zfxz+XFp3GBZnEUAD6hYgeseFDY2ordE=" crossorigin=""></script>
+
+<!-- Supercluster: the same clustering engine MapLibre/Mapbox use internally for native
+     cluster:true GeoJSON sources. Used directly here so cluster/pin bubbles can still be
+     rendered as our own styled DOM markers (custom badges, bounce animation, popups),
+     instead of MapLibre's built-in GL circle-layer clustering. -->
+<script src="https://unpkg.com/supercluster@8.0.1/dist/supercluster.js" integrity="sha256-uU0t0MDv3OgeIeXXh1aNdbh1F3j7HgYYOF+2xE4pzjw=" crossorigin=""></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --coral: #FF6B6B;
+    --coral-dark: #e85555;
+    --forest: #2D6A4F;
+    --ink: #2b2420;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  a { text-decoration: none; color: inherit; }
+
+  img { max-width: 100%; display: block; }
+
+  /* ---------- Nav ---------- */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 248, 240, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(45, 106, 79, 0.12);
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--forest);
+  }
+
+  .nav-logo span { color: var(--coral); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--ink);
+    position: relative;
+    padding-bottom: 4px;
+    transition: color 0.2s ease;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background: var(--coral);
+    transition: width 0.25s ease;
+  }
+
+  .nav-links a:hover { color: var(--coral); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-links a.active { color: var(--coral); }
+  .nav-links a.active::after { width: 100%; }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  .nav-toggle span {
+    width: 24px;
+    height: 2px;
+    background: var(--forest);
+    border-radius: 2px;
+  }
+
+  /* ---------- Language switcher ---------- */
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .lang-switch {
+    display: flex;
+    border: 1.5px solid var(--forest);
+    border-radius: 999px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .lang-btn {
+    border: none;
+    background: transparent;
+    color: var(--forest);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .lang-btn.active { background: var(--forest); color: #fff; }
+  .lang-btn:not(.active):hover { background: rgba(45, 106, 79, 0.08); }
+
+  @media (max-width: 480px) {
+    .nav-right { gap: 10px; }
+    .lang-btn { padding: 5px 9px; font-size: 0.68rem; }
+    .nav-logo { font-size: 1.1rem; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 90px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 56px;
+    text-align: left;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255, 107, 107, 0.18) 0, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(45, 106, 79, 0.55) 0, transparent 55%),
+      #0d1c16;
+    overflow: hidden;
+  }
+
+  .hero-shader-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: block;
+  }
+
+  .hero-photo {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 280px;
+    height: 340px;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 6px solid #fff;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+  }
+
+  .hero-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 560px; }
+
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--coral);
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: -1px;
+    line-height: 1.05;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--coral);
+  }
+
+  .hero-tagline {
+    margin-top: 22px;
+    max-width: 520px;
+    font-size: 1.15rem;
+    color: rgba(255, 248, 240, 0.75);
+    font-weight: 300;
+  }
+
+  .hero-cta {
+    margin-top: 36px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .hero .btn-outline {
+    background: rgba(255, 248, 240, 0.06);
+    color: var(--cream);
+    border: 1.5px solid rgba(255, 248, 240, 0.55);
+  }
+
+  .hero .btn-outline:hover {
+    background: var(--cream);
+    color: var(--forest);
+    border-color: var(--cream);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-shader-canvas { display: none; }
+  }
+
+  @media (max-width: 900px) {
+    .hero {
+      flex-direction: column;
+      text-align: center;
+      padding: 70px 24px 80px;
+    }
+
+    .hero-content { text-align: center; }
+    .hero-tagline { margin-left: auto; margin-right: auto; }
+    .hero-cta { justify-content: center; }
+    .hero-photo { width: 220px; height: 260px; }
+  }
+
+  @media (max-width: 420px) {
+    .hero-photo { width: 170px; height: 210px; border-radius: 22px; }
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 13px 30px;
+    border-radius: 999px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--coral);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.35);
+  }
+
+  .btn-primary:hover {
+    background: var(--coral-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(255, 107, 107, 0.45);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--forest);
+    border: 1.5px solid var(--forest);
+  }
+
+  .btn-outline:hover {
+    background: var(--forest);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  /* ---------- Section shared ---------- */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 70px 24px;
+  }
+
+  .section-heading {
+    text-align: center;
+    margin-bottom: 42px;
+  }
+
+  .section-heading .kicker {
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: var(--forest);
+    margin-top: 8px;
+  }
+
+  .section-heading p {
+    margin-top: 12px;
+    color: #6b5f54;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section-heading .read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 18px;
+    color: var(--coral);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .section-heading .read-more:hover { text-decoration: underline; }
+
+  /* ---------- Filters ---------- */
+  .filters {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+
+  .filter-btn {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 1.5px solid var(--forest);
+    background: transparent;
+    color: var(--forest);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .filter-btn:hover {
+    background: rgba(45, 106, 79, 0.08);
+  }
+
+  .filter-btn.active {
+    background: var(--forest);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(45, 106, 79, 0.3);
+  }
+
+  /* ---------- Map ---------- */
+  .map-wrap {
+    border-radius: 22px;
+    overflow: visible;
+    box-shadow: 0 20px 50px rgba(45, 34, 20, 0.12);
+    border: 6px solid #fff;
+  }
+
+  #map {
+    height: 520px;
+    width: 100%;
+    background: #eaf2ee;
+    border-radius: 16px;
+  }
+
+  /* Round the canvas itself (not the container) — MapLibre appends popups as a direct
+     child of #map, so overflow:hidden on the container/wrapper would clip open popups
+     whenever they're taller than the remaining space below the pin. */
+  .maplibregl-canvas {
+    border-radius: 16px;
+  }
+
+  @media (max-width: 640px) {
+    #map { height: 400px; }
+  }
+
+  /* MapLibre popup restyle */
+  .maplibregl-popup-content {
+    padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(45, 34, 20, 0.18);
+  }
+
+  .maplibregl-popup-close-button {
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .maplibregl-popup-close-button:hover {
+    background: var(--coral-dark);
+    color: #fff;
+    transform: scale(1.08);
+  }
+
+  /* Custom coral pin (replaces Leaflet's circleMarker) */
+  .suzy-pin {
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #FF6B6B;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+  }
+
+  /* Cluster badges (Supercluster groups, rendered as DOM markers to match pin styling) */
+  .suzy-cluster {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--coral);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    border: 3px solid #fff;
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.45);
+    cursor: pointer;
+  }
+
+  .suzy-cluster-small { width: 38px; height: 38px; font-size: 0.85rem; }
+  .suzy-cluster-medium { width: 46px; height: 46px; font-size: 0.95rem; background: var(--coral-dark); }
+  .suzy-cluster-large { width: 54px; height: 54px; font-size: 1.05rem; background: var(--forest); box-shadow: 0 8px 20px rgba(45, 106, 79, 0.45); }
+
+  /* Staggered drop-in bounce for pins */
+  @keyframes pinDrop {
+    0%   { opacity: 0; transform: translateY(-46px) scale(0.4); }
+    50%  { opacity: 1; transform: translateY(8px) scale(1.15); }
+    70%  { transform: translateY(-4px) scale(0.95); }
+    85%  { transform: translateY(2px) scale(1.02); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  .pin-drop {
+    transform-origin: center;
+    animation: pinDrop 0.7s ease-out both;
+  }
+
+  .popup-card { width: 240px; }
+
+  .popup-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 16px 16px 0 0;
+    display: block;
+  }
+
+  .popup-card-body { padding: 16px 18px 18px; }
+
+  .popup-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--forest);
+    background: rgba(45, 106, 79, 0.1);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+
+  .popup-card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .popup-card p {
+    font-size: 0.8rem;
+    color: #6b5f54;
+    margin-bottom: 10px;
+  }
+
+  .popup-card .read-more {
+    color: var(--coral);
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .popup-card .read-more:hover { text-decoration: underline; }
+
+  /* ---------- Blog ---------- */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  @media (max-width: 900px) {
+    .blog-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .blog-grid { grid-template-columns: 1fr; }
+  }
+
+  .blog-card {
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(45, 34, 20, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(45, 34, 20, 0.14);
+  }
+
+  .blog-card .thumb {
+    height: 190px;
+    overflow: hidden;
+  }
+
+  .blog-card .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .blog-card:hover .thumb img { transform: scale(1.06); }
+
+  .blog-card-body { padding: 22px 24px 26px; }
+
+  .blog-date {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  .blog-card h3 {
+    margin-top: 8px;
+    font-size: 1.25rem;
+    color: var(--forest);
+  }
+
+  .blog-card p {
+    margin-top: 10px;
+    font-size: 0.92rem;
+    color: #6b5f54;
+  }
+
+  .blog-card .read-more {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--coral);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .blog-card .read-more:hover { text-decoration: underline; }
+
+  /* ---------- Scroll reveal ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    text-align: center;
+    padding: 48px 24px 36px;
+    background: var(--cream);
+    border-top: 2px solid var(--forest);
+  }
+
+  .footer-social {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .footer-social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--coral);
+    border: 1.5px solid rgba(255, 107, 107, 0.3);
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .footer-social svg { width: 18px; height: 18px; }
+
+  .footer-social a:hover {
+    background: var(--coral);
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(255, 107, 107, 0.35);
+  }
+
+  .footer-tagline {
+    color: #8a7c6d;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  .footer-tagline .heart { color: var(--coral); }
+
+  .footer-copy {
+    color: #8a7c6d;
+    font-size: 0.85rem;
+  }
+
+  .back-to-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--forest);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .back-to-top:hover {
+    color: var(--coral);
+    transform: translateY(-2px);
+  }
+
+  /* ---------- Mobile nav ---------- */
+  @media (max-width: 720px) {
+    .nav-toggle { display: flex; }
+
+    .nav-links {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--cream);
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      border-bottom: 1px solid rgba(45, 106, 79, 0.12);
+    }
+
+    .nav-links.open { max-height: 300px; }
+
+    .nav-links li { width: 100%; text-align: center; }
+
+    .nav-links a {
+      display: block;
+      padding: 16px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Wander With <span>Suzy</span></a>
+    <div class="nav-right">
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang="en" type="button">EN</button>
+        <button class="lang-btn" data-lang="ru" type="button">RU</button>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="active" data-en="Home" data-ru="Главная">Home</a></li>
+        <li><a href="blog.html" data-en="Blog" data-ru="Блог">Blog</a></li>
+        <li><a href="about.html" data-en="About" data-ru="Обо мне">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="home">
+  <canvas id="heroShaderCanvas" class="hero-shader-canvas" aria-hidden="true"></canvas>
+  <div class="hero-photo reveal">
+    <img src="assets/suzy-photo.jpg" alt="Suzy">
+  </div>
+  <div class="hero-content">
+    <span class="hero-eyebrow reveal" data-en="Travel &amp; Wandering Since Forever" data-ru="Путешествую и странствую всю жизнь">Travel &amp; Wandering Since Forever</span>
+    <h1 class="display reveal">Wander With <em>Suzy</em></h1>
+    <p class="hero-tagline reveal" data-en="Stories From Every Corner of the World." data-ru="Истории из всех уголков мира.">Stories From Every Corner of the World.</p>
+    <div class="hero-cta reveal">
+      <a href="#map-section" class="btn btn-primary" data-en="Explore the Map" data-ru="Исследовать карту">Explore the Map</a>
+      <a href="blog.html" class="btn btn-outline" data-en="Read the Blog" data-ru="Читать блог">Read the Blog</a>
+    </div>
+  </div>
+</header>
+
+<section class="section" id="map-section">
+  <div class="section-heading reveal">
+    <span class="kicker" data-en="Where I've Been" data-ru="Где я побывала">Where I've Been</span>
+    <h2 class="display" data-en="The Map So Far" data-ru="Карта путешествий">The Map So Far</h2>
+    <p data-en="Eight countries, endless stories. Click a pin to peek into each one." data-ru="Восемь стран, бесконечные истории. Нажмите на метку, чтобы заглянуть в каждую из них.">Eight countries, endless stories. Click a pin to peek into each one.</p>
+  </div>
+
+  <div class="filters reveal" id="filters">
+    <button class="filter-btn active" data-filter="All" data-en="All" data-ru="Все">All</button>
+    <button class="filter-btn" data-filter="Culture" data-en="Culture" data-ru="Культура">Culture</button>
+    <button class="filter-btn" data-filter="Food" data-en="Food" data-ru="Еда">Food</button>
+    <button class="filter-btn" data-filter="Adventure" data-en="Adventure" data-ru="Приключения">Adventure</button>
+  </div>
+
+  <div class="map-wrap reveal">
+    <div id="map"></div>
+  </div>
+</section>
+
+<section class="section" id="blog">
+  <div class="section-heading reveal">
+    <span class="kicker" data-en="Fresh Off the Plane" data-ru="Только что с самолёта">Fresh Off the Plane</span>
+    <h2 class="display" data-en="Latest Stories" data-ru="Последние истории">Latest Stories</h2>
+    <p data-en="Notes, photos, and honest takes from the road." data-ru="Заметки, фото и честные впечатления с дороги.">Notes, photos, and honest takes from the road.</p>
+  </div>
+
+  <div class="blog-grid">
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-1/500/400" alt="Lisbon rooftops at sunset"></div>
+      <div class="blog-card-body">
+        <span class="blog-date" data-en="June 14, 2026" data-ru="14 июня 2026">June 14, 2026</span>
+        <h3 data-en="48 Hours in Lisbon: A Love Letter" data-ru="48 часов в Лиссабоне: любовное письмо">48 Hours in Lisbon: A Love Letter</h3>
+        <p data-en="How one weekend in Portugal's capital turned into a home base and a whole new chapter of my life." data-ru="Как один уик-энд в столице Португалии превратился в дом и целую новую главу моей жизни.">How one weekend in Portugal's capital turned into a home base and a whole new chapter of my life.</p>
+        <a href="blog.html" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-2/500/400" alt="Bangkok street food stall"></div>
+      <div class="blog-card-body">
+        <span class="blog-date" data-en="May 29, 2026" data-ru="29 мая 2026">May 29, 2026</span>
+        <h3 data-en="The Street Food Crawl That Broke Me (Happily)" data-ru="Уличная еда, которая меня доконала (в хорошем смысле)">The Street Food Crawl That Broke Me (Happily)</h3>
+        <p data-en="Six stalls, four neighborhoods, one very full stomach — my Bangkok food map for first-timers." data-ru="Шесть лотков, четыре района, один очень сытый желудок — моя гастрокарта Бангкока для новичков.">Six stalls, four neighborhoods, one very full stomach — my Bangkok food map for first-timers.</p>
+        <a href="blog.html" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+
+    <article class="blog-card reveal">
+      <div class="thumb"><img src="https://picsum.photos/seed/suzy-blog-3/500/400" alt="Bali rice terraces at dawn"></div>
+      <div class="blog-card-body">
+        <span class="blog-date" data-en="May 10, 2026" data-ru="10 мая 2026">May 10, 2026</span>
+        <h3 data-en="Chasing Sunrise Over the Rice Terraces" data-ru="В погоне за рассветом над рисовыми террасами">Chasing Sunrise Over the Rice Terraces</h3>
+        <p data-en="Waking up at 4:30am in Bali was not on my vacation bingo card. I'd do it again tomorrow." data-ru="Проснуться в 4:30 утра на Бали — такого пункта не было в моём отпускном списке. Я бы повторила это завтра же.">Waking up at 4:30am in Bali was not on my vacation bingo card. I'd do it again tomorrow.</p>
+        <a href="blog.html" class="read-more" data-en="Read More →" data-ru="Подробнее →">Read More →</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="about">
+  <div class="section-heading reveal">
+    <span class="kicker" data-en="Hi, I'm Suzy" data-ru="Привет, я Сьюзи">Hi, I'm Suzy</span>
+    <h2 class="display" data-en="A Little About Me" data-ru="Немного обо мне">A Little About Me</h2>
+    <p data-en="Recovering desk-jockey turned full-time wanderer. I write about the places that changed me, the food that ruined all other food, and the lessons learned somewhere between a missed flight and a found friend. Currently based between Lisbon and wherever the next flight lands." data-ru="Бывшая офисная сотрудница, а ныне странница на полную ставку. Я пишу о местах, которые изменили меня, еде, после которой вся остальная еда меркнет, и уроках, извлечённых где-то между опозданием на рейс и обретением друга. Сейчас я живу между Лиссабоном и тем местом, куда летит следующий рейс.">Recovering desk-jockey turned full-time wanderer. I write about the places that changed me, the food that ruined all other food, and the lessons learned somewhere between a missed flight and a found friend. Currently based between Lisbon and wherever the next flight lands.</p>
+    <a href="about.html" class="read-more" data-en="Read My Full Story →" data-ru="Читать мою историю →">Read My Full Story →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-social">
+    <a href="#" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+    <a href="#" aria-label="YouTube">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="5" width="20" height="14" rx="4"/>
+        <path d="M10 9l6 3-6 3V9z" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+    <a href="#" aria-label="Twitter / X">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4l16 16M20 4L4 20"/>
+      </svg>
+    </a>
+  </div>
+  <p class="footer-tagline" data-en='Made with <span class="heart">♥</span> and a lot of jet lag' data-ru='Сделано с <span class="heart">♥</span> и джетлагом'>Made with <span class="heart">♥</span> and a lot of jet lag</p>
+  <p class="footer-copy">© 2025 Wander With Suzy</p>
+  <a href="#" class="back-to-top" data-en="↑ Back to top" data-ru="↑ Наверх">↑ Back to top</a>
+</footer>
+
+<script>
+  // ---- Language switcher (EN/RU) ----
+  (function () {
+    const STORAGE_KEY = 'suzyLang';
+
+    function applyLang(lang) {
+      document.documentElement.setAttribute('lang', lang);
+      document.querySelectorAll('[data-en]').forEach(el => {
+        const val = lang === 'ru' ? el.dataset.ru : el.dataset.en;
+        if (val !== undefined) el.innerHTML = val;
+      });
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+      if (typeof window.refreshMapLanguage === 'function') {
+        window.refreshMapLanguage(lang);
+      }
+      localStorage.setItem(STORAGE_KEY, lang);
+    }
+
+    const savedLang = localStorage.getItem(STORAGE_KEY) || 'ru';
+    applyLang(savedLang);
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+    });
+  })();
+
+  // ---- Animated shader background for hero, brand-colored (forest / coral / cream) ----
+  (function () {
+    const canvas = document.getElementById('heroShaderCanvas');
+    if (!canvas) return;
+
+    // Respect reduced-motion preference and skip entirely if unsupported — CSS gradient fallback on .hero covers both cases
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const gl = canvas.getContext('webgl2');
+    if (!gl) return;
+
+    const vertexSrc = `#version 300 es
+precision highp float;
+in vec4 position;
+void main(){gl_Position=position;}`;
+
+    const fragmentSrc = `#version 300 es
+precision highp float;
+out vec4 O;
+uniform vec2 resolution;
+uniform float time;
+#define FC gl_FragCoord.xy
+#define T time
+#define R resolution
+#define MN min(R.x,R.y)
+float rnd(vec2 p){p=fract(p*vec2(12.9898,78.233));p+=dot(p,p+34.56);return fract(p.x*p.y);}
+float noise(in vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);float a=rnd(i),b=rnd(i+vec2(1,0)),c=rnd(i+vec2(0,1)),d=rnd(i+1.);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}
+float fbm(vec2 p){float t=.0,a=1.;mat2 m=mat2(1.,-.5,.2,1.2);for(int i=0;i<5;i++){t+=a*noise(p);p*=2.*m;a*=.5;}return t;}
+float clouds(vec2 p){float d=1.,t=.0;for(float i=.0;i<3.;i++){float a=d*fbm(i*10.+p.x*.2+.2*(1.+i)*p.y+d+i*i+p);t=mix(t,d,a);d=a;p*=2./(i+1.);}return t;}
+void main(void){
+  vec2 uv=(FC-.5*R)/MN,st=uv*vec2(2,1);
+  vec3 col=vec3(0);
+  float bg=clouds(vec2(st.x+T*.35,-st.y));
+  uv*=1.-.3*(sin(T*.2)*.5+.5);
+  for(float i=1.;i<12.;i++){
+    uv+=.1*cos(i*vec2(.1+.01*i,.8)+i*i+T*.35+.1*uv.x);
+    vec2 p=uv;
+    float d=length(p);
+    col+=.00125/d*((cos(sin(i)*vec3(1,2,3))+1.)*vec3(1.0,0.5,0.46));
+    float b=noise(i+p+bg*1.731);
+    col+=.002*b/length(max(p,vec2(b*p.x*.02,p.y)))*vec3(1.0,0.9,0.75);
+    col=mix(col,vec3(bg*.07,bg*.2,bg*.15),d);
+  }
+  O=vec4(col,1);
+}`;
+
+    function compile(shader, source) {
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('Hero shader compile error:', gl.getShaderInfoLog(shader));
+      }
+    }
+
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+    compile(vs, vertexSrc);
+    compile(fs, fragmentSrc);
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Hero shader link error:', gl.getProgramInfoLog(program));
+      return;
+    }
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, -1, -1, 1, 1, 1, -1]), gl.STATIC_DRAW);
+
+    const positionLoc = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(positionLoc);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const resolutionLoc = gl.getUniformLocation(program, 'resolution');
+    const timeLoc = gl.getUniformLocation(program, 'time');
+
+    const dpr = Math.max(1, 0.5 * window.devicePixelRatio);
+
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(resize);
+    }
+
+    let rafId = null;
+    function render(now) {
+      gl.useProgram(program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
+      gl.uniform1f(timeLoc, now * 1e-3);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      rafId = requestAnimationFrame(render);
+    }
+    rafId = requestAnimationFrame(render);
+
+    // Pause the render loop when the hero scrolls out of view to save battery/CPU
+    const heroEl = document.getElementById('home');
+    if (heroEl && 'IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (rafId === null) rafId = requestAnimationFrame(render);
+          } else if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+        });
+      }, { threshold: 0 }).observe(heroEl);
+    }
+  })();
+
+  // ---- Scroll-triggered fade-up animations ----
+  (function () {
+    const revealEls = document.querySelectorAll('.reveal');
+
+    // Stagger siblings within the same container so groups cascade in one after another
+    const groups = new Map();
+    revealEls.forEach(el => {
+      const parent = el.parentElement;
+      if (!groups.has(parent)) groups.set(parent, []);
+      groups.get(parent).push(el);
+    });
+    groups.forEach(siblings => {
+      siblings.forEach((el, i) => {
+        el.style.transitionDelay = `${i * 110}ms`;
+      });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+    revealEls.forEach(el => observer.observe(el));
+  })();
+
+  // ---- Mobile nav toggle ----
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => navLinks.classList.remove('open'));
+  });
+
+  // ---- Destination data ----
+  const destinations = [
+    {
+      country: 'Portugal',
+      countryRu: 'Португалия',
+      city: 'Lisbon',
+      cityRu: 'Лиссабон',
+      coords: [38.7223, -9.1393],
+      description: 'Where it all began. Pastéis de nata and golden-hour sunsets.',
+      descriptionRu: 'Здесь всё началось. Паштейш-де-ната и закаты цвета золота.',
+      category: 'Home Base',
+      categoryRu: 'База',
+      seed: 'lisbon-suzy'
+    },
+    {
+      country: 'Japan',
+      countryRu: 'Япония',
+      city: 'Tokyo',
+      cityRu: 'Токио',
+      coords: [35.6762, 139.6503],
+      description: 'Cherry blossoms and beautiful, controlled chaos.',
+      descriptionRu: 'Цветущая сакура и прекрасный управляемый хаос.',
+      category: 'Culture',
+      categoryRu: 'Культура',
+      seed: 'tokyo-suzy'
+    },
+    {
+      country: 'Thailand',
+      countryRu: 'Таиланд',
+      city: 'Bangkok',
+      cityRu: 'Бангкок',
+      coords: [13.7563, 100.5018],
+      description: 'Street food heaven. Every corner is a new flavor.',
+      descriptionRu: 'Рай уличной еды. За каждым углом — новый вкус.',
+      category: 'Food',
+      categoryRu: 'Еда',
+      seed: 'bangkok-suzy'
+    },
+    {
+      country: 'Morocco',
+      countryRu: 'Марокко',
+      city: 'Marrakech',
+      cityRu: 'Марракеш',
+      coords: [31.6295, -7.9811],
+      description: 'The souks, the colors, the glorious madness.',
+      descriptionRu: 'Базары, краски, чудесное безумие.',
+      category: 'Adventure',
+      categoryRu: 'Приключения',
+      seed: 'marrakech-suzy'
+    },
+    {
+      country: 'Italy',
+      countryRu: 'Италия',
+      city: 'Amalfi Coast',
+      cityRu: 'Амальфитанское побережье',
+      coords: [40.6340, 14.6027],
+      description: 'Lemon trees, cliffside drives, and the bluest water.',
+      descriptionRu: 'Лимонные рощи, дороги вдоль скал и самая синяя вода.',
+      category: 'Culture',
+      categoryRu: 'Культура',
+      seed: 'amalfi-suzy'
+    },
+    {
+      country: 'Vietnam',
+      countryRu: 'Вьетнам',
+      city: 'Hanoi',
+      cityRu: 'Ханой',
+      coords: [21.0278, 105.8342],
+      description: 'Motorbikes, steaming pho, and old quarter magic.',
+      descriptionRu: 'Мотобайки, дымящийся фо и магия старого квартала.',
+      category: 'Food',
+      categoryRu: 'Еда',
+      seed: 'hanoi-suzy'
+    },
+    {
+      country: 'Greece',
+      countryRu: 'Греция',
+      city: 'Santorini',
+      cityRu: 'Санторини',
+      coords: [36.3932, 25.4615],
+      description: 'Blue domes and impossible sunsets.',
+      descriptionRu: 'Синие купола и невероятные закаты.',
+      category: 'Culture',
+      categoryRu: 'Культура',
+      seed: 'santorini-suzy'
+    },
+    {
+      country: 'Indonesia',
+      countryRu: 'Индонезия',
+      city: 'Bali',
+      cityRu: 'Бали',
+      coords: [-8.3405, 115.0920],
+      description: 'Rice terraces at dawn, temple incense, and surf.',
+      descriptionRu: 'Рисовые террасы на рассвете, благовония храмов и сёрфинг.',
+      category: 'Adventure',
+      categoryRu: 'Приключения',
+      seed: 'bali-suzy'
+    }
+  ];
+
+  function currentLang() {
+    return localStorage.getItem('suzyLang') || 'ru';
+  }
+
+  // ---- Map init ----
+  // MapLibre uses [lng, lat] order — Leaflet's destinations.coords stays [lat, lng] for readability,
+  // so every lookup below flips it: [dest.coords[1], dest.coords[0]].
+  const initialBounds = new maplibregl.LngLatBounds();
+  destinations.forEach(dest => initialBounds.extend([dest.coords[1], dest.coords[0]]));
+
+  // cooperativeGestures requires two fingers to pan/zoom on touch devices (one finger just
+  // scrolls the page normally) and Ctrl/Cmd+scroll to zoom with a mouse wheel — otherwise the
+  // map "traps" a single-finger swipe or an accidental scroll-over, and the page underneath
+  // becomes unscrollable the moment the cursor/finger is over the map.
+  const mapLocale = currentLang() === 'ru'
+    ? {
+        'CooperativeGesturesHandler.WindowsHelpText': 'Используйте Ctrl + колесо мыши для зума карты',
+        'CooperativeGesturesHandler.MacHelpText': 'Используйте ⌘ + колесо мыши для зума карты',
+        'CooperativeGesturesHandler.MobileHelpText': 'Используйте два пальца, чтобы двигать карту'
+      }
+    : undefined;
+
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://tiles.openfreemap.org/styles/liberty',
+    bounds: initialBounds,
+    fitBoundsOptions: { padding: 50 },
+    renderWorldCopies: true,
+    attributionControl: true,
+    cooperativeGestures: true,
+    locale: mapLocale
+  });
+
+  map.addControl(new maplibregl.NavigationControl(), 'top-left');
+
+  // Outer element is what MapLibre positions via its own CSS transform — the bounce animation
+  // must NOT touch that element's transform, or it fights MapLibre's positioning and every pin
+  // ends up stuck at the same spot. So the coral circle + bounce animation live on an inner child.
+  function createPinElement() {
+    const outer = document.createElement('div');
+    const inner = document.createElement('div');
+    inner.className = 'suzy-pin pin-drop';
+    outer.appendChild(inner);
+    return outer;
+  }
+
+  function createClusterElement(count) {
+    const outer = document.createElement('div');
+    const inner = document.createElement('div');
+    let sizeClass = 'suzy-cluster-small';
+    if (count >= 5) sizeClass = 'suzy-cluster-large';
+    else if (count >= 3) sizeClass = 'suzy-cluster-medium';
+    inner.className = `suzy-cluster ${sizeClass} pin-drop`;
+    inner.textContent = count;
+    outer.appendChild(inner);
+    return outer;
+  }
+
+  // (Re)plays the staggered drop-in bounce on whichever pin/cluster element was just added
+  function dropInPin(markerEl, delayMs) {
+    const inner = markerEl.querySelector('.pin-drop');
+    if (!inner) return;
+    inner.style.animation = 'none';
+    void inner.offsetWidth;
+    inner.style.animation = '';
+    inner.style.animationDelay = `${delayMs}ms`;
+  }
+
+  function buildPopupHtml(dest, lang) {
+    const country = lang === 'ru' ? dest.countryRu : dest.country;
+    const city = lang === 'ru' ? dest.cityRu : dest.city;
+    const category = lang === 'ru' ? dest.categoryRu : dest.category;
+    const description = lang === 'ru' ? dest.descriptionRu : dest.description;
+    const readMore = lang === 'ru' ? 'Подробнее →' : 'Read More →';
+    return `
+      <div class="popup-card">
+        <img src="https://picsum.photos/seed/${dest.seed}/320/200" alt="${city}, ${country}">
+        <div class="popup-card-body">
+          <span class="popup-tag">${category}</span>
+          <h3>${country} — ${city}</h3>
+          <p>${description}</p>
+          <a href="blog.html" class="read-more">${readMore}</a>
+        </div>
+      </div>
+    `;
+  }
+
+  // Only one popup open at a time (matches Leaflet's default autoClose behavior)
+  let activePopup = null;
+  let activePopupDest = null;
+
+  // The bounce-in animation only plays once BOTH the cluster data is ready AND the map has
+  // actually scrolled into view — otherwise the map finishes loading (and the bounce plays
+  // out) while the user is still reading the hero section, so by the time they scroll down
+  // the pins are already sitting still and it looks like there's no animation at all.
+  let mapSectionVisible = false;
+  let firstSyncDone = false;
+
+  function trySyncMarkers() {
+    if (!clusterIndex || !mapSectionVisible) return;
+    firstSyncDone = true;
+    syncMarkers();
+  }
+
+  const mapWrapEl = document.querySelector('.map-wrap');
+  if (mapWrapEl && 'IntersectionObserver' in window) {
+    const mapVisibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          mapSectionVisible = true;
+          trySyncMarkers();
+          mapVisibilityObserver.disconnect();
+        }
+      });
+    }, { threshold: 0.2 });
+    mapVisibilityObserver.observe(mapWrapEl);
+  } else {
+    mapSectionVisible = true;
+  }
+
+  // ---- Clustering ----
+  // Supercluster computes which pins group together at the current zoom/viewport (the exact
+  // same engine MapLibre uses internally for cluster:true GeoJSON sources), but instead of
+  // letting MapLibre paint clusters as GL circle layers, we render its output as our own DOM
+  // markers — that's what lets the cluster badges keep the coral/forest sizing, the bounce
+  // entrance animation, and the existing popup/click logic below.
+  function buildFeatures(destList) {
+    return destList.map((dest) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [dest.coords[1], dest.coords[0]] },
+      properties: { index: destinations.indexOf(dest) }
+    }));
+  }
+
+  let clusterIndex = new Supercluster({ radius: 60, maxZoom: 8 });
+  clusterIndex.load(buildFeatures(destinations));
+
+  const liveMarkers = new Map(); // stable key -> maplibregl.Marker currently on the map
+
+  function syncMarkers() {
+    const bounds = map.getBounds();
+    const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+    const zoom = Math.floor(map.getZoom());
+    const clusters = clusterIndex.getClusters(bbox, zoom);
+
+    const nextKeys = new Set();
+    const newlyAddedEls = [];
+
+    clusters.forEach((feature) => {
+      const [lng, lat] = feature.geometry.coordinates;
+      const isCluster = !!feature.properties.cluster;
+      const key = isCluster ? `cluster-${feature.properties.cluster_id}` : `point-${feature.properties.index}`;
+      nextKeys.add(key);
+
+      if (liveMarkers.has(key)) return;
+
+      let marker;
+
+      if (isCluster) {
+        const count = feature.properties.point_count;
+        const el = createClusterElement(count);
+        marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const expansionZoom = Math.min(clusterIndex.getClusterExpansionZoom(feature.properties.cluster_id), 18);
+          map.flyTo({ center: [lng, lat], zoom: expansionZoom, duration: 800 });
+        });
+      } else {
+        const dest = destinations[feature.properties.index];
+        const el = createPinElement();
+        marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Shift the pin up from dead-center so the popup (which opens downward, ~350px tall)
+          // has room to fully appear within the map instead of hanging off the bottom edge —
+          // proportional to container height so it adapts between the desktop/mobile map sizes.
+          const centerOffsetY = -Math.round(map.getContainer().clientHeight * 0.25);
+          map.flyTo({ center: [lng, lat], zoom: 6, duration: 1200, offset: [0, centerOffsetY] });
+          map.once('moveend', () => {
+            const popup = new maplibregl.Popup({ closeButton: true, maxWidth: '260px', offset: 16 })
+              .setLngLat([lng, lat])
+              .setHTML(buildPopupHtml(dest, currentLang()));
+
+            if (activePopup) activePopup.remove();
+            popup.on('close', () => {
+              if (activePopup === popup) { activePopup = null; activePopupDest = null; }
+            });
+
+            popup.addTo(map);
+            activePopup = popup;
+            activePopupDest = dest;
+          });
+        });
+      }
+
+      liveMarkers.set(key, marker);
+      newlyAddedEls.push(marker.getElement());
+    });
+
+    liveMarkers.forEach((marker, key) => {
+      if (!nextKeys.has(key)) {
+        marker.remove();
+        liveMarkers.delete(key);
+      }
+    });
+
+    newlyAddedEls.forEach((el, i) => dropInPin(el, i * 90));
+  }
+
+  function handleMapMovement() {
+    if (!firstSyncDone) { trySyncMarkers(); return; }
+    syncMarkers();
+  }
+
+  map.on('load', () => trySyncMarkers());
+  map.on('zoomend', handleMapMovement);
+  map.on('moveend', handleMapMovement);
+
+  // Re-render the currently open popup's content when language toggles
+  window.refreshMapLanguage = function (lang) {
+    if (activePopup && activePopupDest) {
+      activePopup.setHTML(buildPopupHtml(activePopupDest, lang));
+    }
+  };
+
+  // ---- Filters ----
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+
+      const filtered = filter === 'All' ? destinations : destinations.filter(d => d.category === filter);
+      clusterIndex = new Supercluster({ radius: 60, maxZoom: 8 });
+      clusterIndex.load(buildFeatures(filtered));
+
+      if (activePopup) {
+        activePopup.remove();
+        activePopup = null;
+        activePopupDest = null;
+      }
+
+      syncMarkers();
+    });
+  });
+</script>
+
+</body>
+</html>

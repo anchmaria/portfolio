@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Formatter - Warm Friendly Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            position: relative;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            background: linear-gradient(135deg, #fff9f5 0%, #fff5f0 100%);
+            color: #5a4a42;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 20% 15%, rgba(255, 195, 151, 0.9), transparent 20%),
+                radial-gradient(circle at 80% 10%, rgba(255, 236, 199, 0.7), transparent 18%),
+                radial-gradient(circle at 60% 75%, rgba(187, 223, 215, 0.7), transparent 24%);
+            background-size: 220% 220%;
+            filter: blur(90px);
+            opacity: 0.95;
+            animation: auroraGlow 24s ease-in-out infinite;
+        }
+
+        @keyframes auroraGlow {
+            0% {
+                background-position: 18% 12%, 82% 18%, 60% 80%;
+            }
+            25% {
+                background-position: 22% 8%, 88% 10%, 48% 76%;
+            }
+            50% {
+                background-position: 26% 5%, 70% 14%, 65% 84%;
+            }
+            75% {
+                background-position: 20% 18%, 78% 12%, 58% 78%;
+            }
+            100% {
+                background-position: 18% 12%, 82% 18%, 60% 80%;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #d47a5a;
+            margin-bottom: 30px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .editor-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .editor-section {
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(212, 122, 90, 0.12);
+            transition: all 0.3s ease;
+        }
+
+        .editor-section:hover {
+            box-shadow: 0 12px 32px rgba(212, 122, 90, 0.18);
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #d47a5a;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #fff5f0 0%, #fffaf7 100%);
+            border-bottom: 2px solid #f5d4c8;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 18px 20px;
+            border: none;
+            font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: none;
+            background-color: #ffffff;
+            color: #5a4a42;
+        }
+
+        #output {
+            animation: none;
+        }
+
+        .output-appear {
+            animation: outputFadeIn 0.2s ease-out;
+        }
+
+        @keyframes outputFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        textarea::placeholder {
+            color: #d4b5a8;
+        }
+
+        textarea:focus {
+            outline: none;
+            background-color: #fffbf9;
+        }
+
+        .stats {
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #b89080;
+            background: linear-gradient(135deg, #fff5f0 0%, #fffaf7 100%);
+            border-top: 1px solid #f5d4c8;
+            font-weight: 500;
+        }
+
+        .button-group {
+            padding: 16px 20px;
+            display: flex;
+            gap: 12px;
+            background: linear-gradient(135deg, #fff5f0 0%, #fffaf7 100%);
+            border-top: 1px solid #f5d4c8;
+        }
+
+        button {
+            padding: 11px 22px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: #f5d4c8;
+            color: #d47a5a;
+            box-shadow: 0 2px 8px rgba(212, 122, 90, 0.15);
+        }
+
+        button:hover {
+            background-color: #f0c4b8;
+            box-shadow: 0 4px 12px rgba(212, 122, 90, 0.25);
+            transform: translateY(-2px);
+        }
+
+        button.primary {
+            background: linear-gradient(135deg, #d47a5a 0%, #c86342 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(212, 122, 90, 0.3);
+        }
+
+        button.primary:hover {
+            background: linear-gradient(135deg, #e28a6a 0%, #d87352 100%);
+            box-shadow: 0 6px 16px rgba(212, 122, 90, 0.4);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .editor-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Formatter</h1>
+        <div class="editor-wrapper">
+            <div class="editor-section">
+                <div class="section-title">Исходный текст</div>
+                <textarea id="input" placeholder="Paste your messy text here...">  Это   пример  текста  с  «фигурными кавычками».
+
+
+Много   пустых   строк.</textarea>
+                <div class="stats" id="inputStats">Слов: 0</div>
+            </div>
+            <div class="editor-section">
+                <div class="section-title">Очищенный результат</div>
+                <textarea id="output" placeholder="Результат форматирования..." readonly></textarea>
+                <div class="stats" id="outputStats">Слов: 0</div>
+                <div class="button-group">
+                    <button class="primary" onclick="copyToClipboard()">Копировать в буфер обмена</button>
+                    <button onclick="exportToFile()">Экспортировать</button>
+                    <button onclick="saveText()">Сохранить</button>
+                    <button onclick="clearText()">Очистить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputTextarea = document.getElementById('input');
+        const outputTextarea = document.getElementById('output');
+
+        function formatText(text) {
+            // Заменять фигурные кавычки на прямые
+            text = text.replace(/[""]/g, '"');
+            text = text.replace(/['']/g, "'");
+            
+            // Удалять двойные пробелы и заменять на одинарные
+            text = text.replace(/  +/g, ' ');
+            
+            // Удалять пробелы в начале и конце каждой строки
+            text = text.split('\n').map(line => line.trim()).join('\n');
+            
+            // Сводить несколько пустых строк к одной
+            text = text.replace(/\n\n\n+/g, '\n\n');
+            
+            return text.trim();
+        }
+
+        function countWords(text) {
+            return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function updateOutput() {
+            const input = inputTextarea.value;
+            const output = formatText(input);
+            outputTextarea.value = output;
+            outputTextarea.classList.remove('output-appear');
+            void outputTextarea.offsetWidth;
+            outputTextarea.classList.add('output-appear');
+            
+            document.getElementById('inputStats').textContent = `Слов: ${countWords(input)}`;
+            document.getElementById('outputStats').textContent = `Слов: ${countWords(output)}`;
+        }
+
+        function copyToClipboard() {
+            outputTextarea.select();
+            document.execCommand('copy');
+            alert('Текст скопирован в буфер обмена!');
+        }
+
+        function exportToFile() {
+            const text = outputTextarea.value;
+            if (!text.trim()) {
+                alert('Нет текста для экспорта!');
+                return;
+            }
+            
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', 'formatted_text.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function saveText() {
+            const text = inputTextarea.value;
+            localStorage.setItem('formattedText', text);
+            alert('Текст сохранен!');
+        }
+
+        function loadSavedText() {
+            const saved = localStorage.getItem('formattedText');
+            if (saved) {
+                inputTextarea.value = saved;
+                updateOutput();
+            }
+        }
+
+        function clearText() {
+            inputTextarea.value = '';
+            outputTextarea.value = '';
+            updateOutput();
+        }
+
+        inputTextarea.addEventListener('input', updateOutput);
+        loadSavedText();
+        updateOutput();
+    </script>
+</body>
+</html>
