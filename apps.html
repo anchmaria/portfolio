@@ -88,6 +88,8 @@ main{padding:46px 0 20px}
 }
 .status i{width:7px;height:7px;border-radius:50%;background:var(--green-light);box-shadow:0 0 0 3px rgba(74,124,89,.2)}
 .status.client{color:var(--ink)}
+.status.private{color:var(--ink-muted)}
+.status.private i{background:transparent;border:1.6px solid var(--sand);box-shadow:none}
 .status.client i{background:var(--sand);box-shadow:0 0 0 3px rgba(194,174,140,.3)}
 .card h2{font-size:18px;font-weight:800;letter-spacing:-.015em;line-height:1.2}
 .special{
@@ -95,7 +97,9 @@ main{padding:46px 0 20px}
   border-left:3px solid var(--sand);padding-left:11px;
 }
 .special b{color:var(--ink);font-weight:700}
-.card-links{margin-top:auto;padding-top:12px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.card-links{margin-top:auto;padding-top:12px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.card-links .muted b{color:var(--ink-body)}
+.special code{font-family:ui-monospace,monospace;font-size:12px;background:var(--green-soft);padding:1px 5px;border-radius:4px}
 .open{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700}
 .open:hover{text-decoration:none}
 .open span{transition:transform .18s var(--ease);display:inline-block}
@@ -224,11 +228,15 @@ footer a{color:var(--sand-bright)}
   <defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0l7 3.5L0 7z" fill="#C2AE8C"/></marker></defs>
 </svg></span>
       <div class="card-body">
-        <div class="card-top"><span class="kind">Telegram bot</span><span class="status"><i></i>Running</span></div>
+        <div class="card-top"><span class="kind">Telegram bot</span><span class="status private"><i></i>Private · on request</span></div>
         <h2>Hair Care Scanner Bot</h2>
-        <p class="special"><b>What is special:</b> photograph a shampoo label in the shop and get a verdict before you reach the till. The careful part is the separation: Claude <b>only transcribes</b> the ingredient list from the photo — it never judges it. The judging is done by a plain rules engine against a personal scalp profile, so the answer is reproducible instead of improvised. Two knowledge layers stay strictly apart: the EU CosIng reference of ~30,000 substances says <i>what a thing is</i>, and ~100 hand-written entries say <i>whether it suits this person</i>. If a component is in neither, the bot says so instead of guessing.</p>
+        <p class="special"><b>What is special:</b> photograph a shampoo label in the shop and get a verdict before you reach the till.<br><br>
+        The careful part is the separation of duties. Claude <b>only transcribes</b> the ingredient list from the photo — it never judges it. Judging is done by a plain rules engine, so the same label always gives the same answer instead of an improvised one.<br><br>
+        It also reads the <b>1% line</b>, which is the thing most ingredient apps get wrong. An INCI list is ordered by concentration only above 1%; below that the order is free. So the bot finds the first preservative, fragrance or dye in the list and treats everything after it as a trace amount — then names the actives that are "there for the label" rather than for effect. With an exception table, because some actives genuinely work at a fraction of a percent, and penalising those would be wrong.<br><br>
+        Two knowledge layers stay strictly apart: the EU CosIng reference of ~30,000 substances says <i>what a thing is</i>; ~100 hand-written entries say <i>whether it suits this person</i>. In neither — the bot says it does not know, instead of guessing.</p>
         <div class="card-links">
-          <span class="muted">Python · aiogram · Claude vision · hosted on Railway · code private</span>
+          <span class="muted">Python · aiogram · Claude vision · rules engine · hosted on Railway</span>
+          <span class="muted"><b>Private</b> — walkthrough and demo on request</span>
         </div>
       </div>
     </article>
@@ -264,17 +272,24 @@ footer a{color:var(--sand-bright)}
       <text x="300" y="230" fill="#9FBCA6">巳 Snake → 巳 Snake</text>
     </g>
 
-    <rect x="26" y="252" width="468" height="48" rx="9" fill="#2F5D3F" stroke="#4A7C59"/>
-    <text x="42" y="272" fill="#C2AE8C" font-size="10" font-weight="800" letter-spacing="1.2">WHY IT MATTERS</text>
-    <text x="42" y="290" fill="#FCFAF5" font-size="12" font-weight="600">Get this wrong and the whole chart shifts by a pillar.</text>
+    <rect x="26" y="248" width="229" height="52" rx="9" fill="#2F5D3F" stroke="#4A7C59"/>
+    <text x="42" y="268" fill="#C2AE8C" font-size="9.5" font-weight="800" letter-spacing="1.1">VERIFIED AGAINST REFERENCE</text>
+    <text x="42" y="288" fill="#FCFAF5" font-size="13" font-weight="800">4,000 / 4,004 matches</text>
+    <rect x="265" y="248" width="229" height="52" rx="9" fill="#1D3B27" stroke="#2F5D3F"/>
+    <text x="281" y="268" fill="#C2AE8C" font-size="9.5" font-weight="800" letter-spacing="1.1">BIRTH DATA, HANDLED PROPERLY</text>
+    <text x="281" y="288" fill="#FCFAF5" font-size="12" font-weight="700">consent · /mydata · /export · /delete</text>
   </g>
 </svg></span>
       <div class="card-body">
-        <div class="card-top"><span class="kind">Telegram bot</span><span class="status"><i></i>Running</span></div>
+        <div class="card-top"><span class="kind">Telegram bot</span><span class="status private"><i></i>Private · on request</span></div>
         <h2>Qi Men &amp; BaZi Hour Bot</h2>
-        <p class="special"><b>What is special:</b> it refuses to trust the clock. A Chinese hour follows the sun, not the time zone, so the bot stores the <b>longitude of every place</b> and corrects for three separate things — longitude within the zone, the equation of time, and daylight saving. The corrections add up to over two hours, enough to land you in the wrong hour and sometimes the wrong day pillar. On top of that it computes Qi Men charts, flying stars, solar terms and favourable directions. Runs as a webhook rather than a polling loop, which is what makes it fit on a free hosting tier at all.</p>
+        <p class="special"><b>What is special:</b> it refuses to trust the clock. A Chinese hour follows the sun, not the time zone, so the bot stores the <b>longitude of every place</b> — 418 time zones and 310 cities — and corrects for three separate things: longitude within the zone, the equation of time, and daylight saving. Those add up to over two hours, enough to land you in the wrong hour and sometimes the wrong day pillar.<br><br>
+        On top of that it computes solar terms, year and month pillars, flying stars by sector, day quality and favourable directions, and sends a daily digest on a schedule. The eight Qi Men spirits were checked against a reference dataset — <b>4,000 matches out of 4,004</b>.<br><br>
+        The personal half takes a birth date and returns the four pillars, the Gua number and eight personal directions, and which days clash or agree with that chart. Because it stores a birth date, it asks for <b>consent before saving anything</b> and ships <code>/mydata</code>, <code>/export</code> and <code>/delete</code>, with a versioned privacy policy that is re-confirmed if the version changes.<br><br>
+        Runs as a webhook rather than a polling loop — which is exactly what makes it fit on a free hosting tier.</p>
         <div class="card-links">
-          <span class="muted">Python · webhook on PythonAnywhere free tier · 11 test suites · code private</span>
+          <span class="muted">Python · webhook on PythonAnywhere free tier · 11 test suites · GDPR-style data rights</span>
+          <span class="muted"><b>Private</b> — walkthrough and demo on request</span>
         </div>
       </div>
     </article>
