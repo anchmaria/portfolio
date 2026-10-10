@@ -62,6 +62,30 @@ a:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .contactbar a{color:var(--paper);font-weight:600;border-bottom:1px solid rgba(217,196,155,.55)}
 .contactbar a:hover{border-bottom-color:var(--sand-bright);text-decoration:none}
 
+.pf-banner{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  margin:0;padding:15px 40px;
+  background:linear-gradient(100deg,var(--green-soft) 0%,#DCE8DA 100%);
+  border-bottom:1px solid var(--line);
+}
+.pf-banner .pf-txt{min-width:0;flex:1}
+.pf-banner .pf-k{
+  font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--green);display:block;margin-bottom:2px;
+}
+.pf-banner .pf-d{font-size:13.4px;color:var(--ink-body);line-height:1.45}
+.pf-banner .pf-d b{color:var(--ink)}
+.pf-cta{
+  display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+  background:var(--green);color:var(--paper);
+  padding:11px 22px;border-radius:999px;font-size:13.5px;font-weight:800;
+  box-shadow:0 3px 10px -3px rgba(22,48,31,.45);
+}
+.pf-cta:hover{background:var(--green-deep);color:var(--paper);text-decoration:none}
+.pf-url{
+  display:block;margin-top:3px;font-size:12px;font-weight:700;
+  color:var(--green);letter-spacing:.01em;
+}
 main{padding:30px 40px 38px}
 section{margin-bottom:26px}
 h2{
@@ -177,6 +201,7 @@ footer a{color:var(--sand-bright)}
 @media(max-width:700px){
   body{padding:0}
   .masthead{flex-direction:column;text-align:center;padding:30px 22px}
+  .pf-banner{padding-left:22px;padding-right:22px}
   .contactbar,main,footer{padding-left:22px;padding-right:22px}
   .cols{grid-template-columns:1fr}
   .feature{flex-direction:column}
@@ -193,13 +218,15 @@ footer a{color:var(--sand-bright)}
   .sheet{box-shadow:none;max-width:none}
 
   /* keep colour */
-  .masthead,.contactbar,footer,.mark,.pill,.highlight,.feature,.bar-fill,.bar-track,.cert-thumb{
+  .masthead,.contactbar,.pf-banner,.pf-cta,footer,.mark,.pill,.highlight,.feature,.bar-fill,.bar-track,.cert-thumb{
     -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
 
   /* keep horizontal breathing room — never flush to the page edge */
   .masthead{padding:16px 22px;gap:18px}
   .contactbar{padding:9px 22px;gap:4px 16px;font-size:11px}
+  .pf-banner{padding:11px 22px;break-inside:avoid}
+  .pf-cta{padding:8px 16px;font-size:12px;box-shadow:none}
   main{padding:15px 22px 8px}
   footer{padding:11px 22px;font-size:10px}
 
@@ -259,6 +286,16 @@ footer a{color:var(--sand-bright)}
     <a href="https://www.instagram.com/mary_yah__/" target="_blank" rel="noopener">Instagram</a>
   </div>
 
+
+  <div class="pf-banner">
+    <div class="pf-txt">
+      <span class="pf-k">Live portfolio</span>
+      <span class="pf-d"><b>13 working projects</b> — websites, web apps and Telegram bots. Every one opens as a running product.</span>
+      <a class="pf-url" href="https://anchmaria.github.io/portfolio/" target="_blank" rel="noopener">anchmaria.github.io/portfolio</a>
+    </div>
+    <a class="pf-cta" href="https://anchmaria.github.io/portfolio/" target="_blank" rel="noopener">View portfolio →</a>
+  </div>
+
   <main>
 
     <section>
@@ -280,10 +317,11 @@ footer a{color:var(--sand-bright)}
           </div>
           <div class="role-org">Independent <span class="loc">· Dublin, Ireland</span></div>
           <ul>
-            <li>Studying online with Jobescape — AI workflows and digital marketing, with the first certificate completed</li>
-            <li>Design and build websites and web apps with Claude, and take them live myself</li>
-            <li>Handle the full path: layout and copy, domain setup and deployment</li>
-            <li>11 projects built so far, including client work — all listed below with working links</li>
+            <li>Design and build websites, web apps and Telegram bots with Claude, and take them live myself</li>
+            <li>Handle the whole path end to end: layout and copy, DNS and domains, deployment, and keeping it running on free hosting tiers</li>
+            <li>Wire up the automation behind a site — booking forms routed to email, to a Telegram bot and to a management dashboard</li>
+            <li>Studying online with Jobescape — AI workflows and digital marketing; first certificate completed</li>
+            <li>13 projects built so far, client work included — all listed with working links</li>
           </ul>
         </div>
       </div>
@@ -424,7 +462,7 @@ footer a{color:var(--sand-bright)}
       </div>
       <div class="skill-group">
         <span class="skill-label">Web</span>
-        <span class="skill-list">Building websites and web apps with AI · Domains and deployment (Vercel, Netlify, GitHub Pages) · Multi-language sites</span>
+        <span class="skill-list">Building websites, web apps and Telegram bots with AI · Python (aiogram) · Claude API · Webhooks and form automation · DNS and domain setup · Deployment on Netlify, Vercel, Railway, PythonAnywhere and GitHub Pages · Multi-language sites</span>
       </div>
       <div class="skill-group">
         <span class="skill-label">Business</span>
@@ -432,7 +470,7 @@ footer a{color:var(--sand-bright)}
       </div>
       <div class="skill-group">
         <span class="skill-label">Tools</span>
-        <span class="skill-list">Claude and Claude Code · Meta Ads Manager · Canva · Video editing · Google Workspace</span>
+        <span class="skill-list">Claude and Claude Code · Telegram Bot API · Git and GitHub · Meta Ads Manager · Canva · Video editing · Google Workspace</span>
       </div>
     </section>
 
